@@ -1,0 +1,29 @@
+{
+  "name": "diplomacy-judge",
+  "version": "1.0.0",
+  "description": "A Diplomacy adjudicator written in JavaScript for Express",
+  "main": "judge.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:spamguy/diplomacy-judge.git"
+  },
+  "keywords": [
+    "diplomacy",
+    "express",
+    "judge",
+    "adjudicator"
+  ],
+  "author": "Will Oram",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/spamguy/diplomacy-judge/issues"
+  },
+  "homepage": "https://github.com/spamguy/diplomacy-judge",
+  "devDependencies": {
+    "express": "^4.10.4",
+    "supertest": "^0.15.0"
+  }
+}
