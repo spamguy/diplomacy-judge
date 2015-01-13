@@ -1,3 +1,6 @@
+// RUN WITH COMMAND:
+// $ jasmine-node test
+
 var request = require('supertest'),
     express = require('express');
 

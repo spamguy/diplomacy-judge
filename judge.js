@@ -1,15 +1,18 @@
+var ResolutionStatus = {
+    UNRESOLVED: 0,
+    GUESSING: 1,
+    RESOLVED: 2
+};
+
 var DiplomacyJudge = module.exports = function(variant, options) {
     if(!(this instanceof DiplomacyJudge)) return new DiplomacyJudge(variant, options);
     if (!variant)
         throw new Error('No variant data supplied.');
         
-    var _variant = variant;
-        
     options = options || { };
 };
 
 DiplomacyJudge.prototype = {
-    
     /**
      * Resolves one phase of a game.
      * @param  {Array} phase
@@ -27,24 +30,26 @@ DiplomacyJudge.prototype = {
          */
         var season,
             year,
-            powers = [],
-            orders;
+            powers = [];
         for (var p = 0; p < phase.length; p++) {
-            order = phase[p];
+            var playerSeason = phase[p];
             if (!year)
-                year = order.year;
-            else if (year !== order.year)
+                year = playerSeason.year;
+            else if (year !== playerSeason.year)
                 throw new Error('The year ' + year + ' is not consistent in this phase\'s orders.');
                 
             if (!season)
-                season = order.season;
-            else if (season !== order.season)
+                season = playerSeason.season;
+            else if (season !== playerSeason.season)
                 throw new Error('The season is not consistent in ' + year + '\'s orders.');
                 
-            if (powers.indexOf(order.power) > -1)
-                throw new Error(order.power + ' has multiple orders in ' + year + '\'s phase.');
+            if (powers.indexOf(playerSeason.power) > -1)
+                throw new Error(playerSeason.power + ' has multiple orders in ' + year + '\'s phase.');
             else
-                powers.push(order.power);
+                powers.push(playerSeason.power);
+                
+            for (var o = 0; o < playerSeason.moves.length; o++)
+                playerSeason.moves[o].res = ResolutionStatus.UNRESOLVED;
         }
         
         // Begin resolution.
