@@ -7,7 +7,7 @@ var request = require('supertest'),
 var app = express();
 var judge = require('../judge.js');
 
-describe('Middleware init scenarios', function() {
+describe('Init scenarios', function() {
     it('requires variant data', function() {
         expect(function() { new judge(); }).toThrow(new Error('No variant data supplied.'));
     });
@@ -19,18 +19,23 @@ describe('Middleware init scenarios', function() {
 });
 
 describe('Invalid data scenarios', function() {
-    var r = new judge({ }).resolve;
+    var p = new judge({ }).process;
     
     it('requires phase data', function() {
-        expect(function() { r(); }).toThrow(new Error('No phase data supplied.'));
+        expect(function() { p(); }).toThrow(new Error('No phase data supplied.'));
     });
     
-    it('expects all moves\' years to match', function() {
-        var goodData = [{ year: 1901, season: 1, power: 'A' }, { year: 1901, season: 1, power: 'B' }],
-            badData  = [{ year: 1901, season: 1, power: 'A' }, { year: 1902, season: 1, power: 'B' }];
-            
+    it('expects all orders\' years to match', function() {
+        var badData = [{ year: 1901, season: 1, power: 'A', moves: [] }, { year: 1902, season: 1, power: 'B', moves: [] }];
         expect(function() {
-            r(badData);
+            p(badData);
         }).toThrow(new Error('The year 1901 is not consistent in this phase\'s orders.'));
+    });
+    
+    it ('expects all orders to have moves[]', function() {
+        var badData = [{ year: 1901, season: 1, power: 'A' }];
+        expect(function() {
+            p(badData);
+        }).toThrow(new Error('The 1901:1 order season for A contains no orders array.'));
     });
 });

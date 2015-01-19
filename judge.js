@@ -1,8 +1,7 @@
-var ResolutionStatus = {
-    UNRESOLVED: 0,
-    GUESSING: 1,
-    RESOLVED: 2
-};
+var Order = require('./order.js'),
+    ResolutionStatus = require('./resolutionstatus.js');
+
+var _orders = [];
 
 var DiplomacyJudge = module.exports = function(variant, options) {
     if(!(this instanceof DiplomacyJudge)) return new DiplomacyJudge(variant, options);
@@ -18,7 +17,7 @@ DiplomacyJudge.prototype = {
      * @param  {Array} phase
      * @return {Array} A new phase containing resolved positions.
      */
-    resolve: function(phase) {
+    process: function(phase) {
         // A phase is an array of PlayerSeason objects with one object per player.
         if (!phase)
             throw new Error('No phase data supplied.');
@@ -48,14 +47,20 @@ DiplomacyJudge.prototype = {
             else
                 powers.push(playerSeason.power);
                 
+            if (!playerSeason.moves)
+                throw new Error('The ' + playerSeason.year + ':' + playerSeason.season + ' order season for ' + playerSeason.power + ' contains no orders array.');
+                
             for (var o = 0; o < playerSeason.moves.length; o++)
-                playerSeason.moves[o].res = ResolutionStatus.UNRESOLVED;
+                _orders.push(new Order(playerSeason.moves[o]));
         }
         
         // Begin resolution.
-        for (var p = 0; p < phase.length; p++) {
-        
-        }
+        for (var o = 0; o < _orders.length; o++)
+        {
+            console.log('Order status is ' + _orders[0].status);
+            
+            _orders[o].adjudicate();
+            }
     },
 
     /**
@@ -63,7 +68,7 @@ DiplomacyJudge.prototype = {
      * @param  {Array} phases
      * @return {Array} A new phase containing resolved positions.
      */
-    resolveAll: function(phases) {
+    processAll: function(phases) {
 
     }
 };

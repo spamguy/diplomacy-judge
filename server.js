@@ -28,7 +28,7 @@ var orders = [{
 ];
 
 var app = express();
-judge(variant).resolve(orders);
+judge(variant).process(orders);
 
 app.listen(9000, process.env.IP, function () {
   console.log('Express server listening on %d', 9000);
