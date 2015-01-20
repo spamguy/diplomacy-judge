@@ -1,7 +1,14 @@
-var Order = require('./order.js'),
-    ResolutionStatus = require('./resolutionstatus.js');
+// Core libs.
+var _ = require('lodash');
 
-var _orders = [];
+// Object definitions.
+var Order = require('./order.js'),
+    ResolutionStatus = require('./resolutionstatus.js'),
+    Resolution = require('./resolution.js');
+
+// resolve() stuff.
+var _orders = { },
+    _dependencyList = [];
 
 var DiplomacyJudge = module.exports = function(variant, options) {
     if(!(this instanceof DiplomacyJudge)) return new DiplomacyJudge(variant, options);
@@ -13,11 +20,23 @@ var DiplomacyJudge = module.exports = function(variant, options) {
 
 DiplomacyJudge.prototype = {
     /**
-     * Resolves one phase of a game.
+     * Processes one phase of a game.
      * @param  {Array} phase
      * @return {Array} A new phase containing resolved positions.
      */
     process: function(phase) {
+        var resolve = function(order) {
+            if (order.state === ResolutionStatus.RESOLVED)
+                return order;
+                
+            if (order.state === ResolutionStatus.GUESSING) {
+                if (!_.some(_dependencyList, { u: order.u }))
+                    _dependencyList.push(order);
+                    
+                return order.result;
+            }
+        };
+    
         // A phase is an array of PlayerSeason objects with one object per player.
         if (!phase)
             throw new Error('No phase data supplied.');
@@ -26,6 +45,7 @@ DiplomacyJudge.prototype = {
          * Minimum requirements to verify before doing anything:
          * - The properties PlayerSeason.Year and PlayerSeason.Season should all match within a phase.
          * - PlayerSeason.Power should be distinct values within a phase.
+         * - PlayerSeason.Moves[] must exist.
          */
         var season,
             year,
@@ -49,22 +69,20 @@ DiplomacyJudge.prototype = {
                 
             if (!playerSeason.moves)
                 throw new Error('The ' + playerSeason.year + ':' + playerSeason.season + ' order season for ' + playerSeason.power + ' contains no orders array.');
-                
+            
+            // Dump this season's orders into a single one-key dictionary of moves.
             for (var o = 0; o < playerSeason.moves.length; o++)
-                _orders.push(new Order(playerSeason.moves[o]));
+                _orders[playerSeason.moves[o].u] = new Order(playerSeason.moves[o]);
         }
         
         // Begin resolution.
-        for (var o = 0; o < _orders.length; o++)
-        {
-            console.log('Order status is ' + _orders[0].status);
-            
-            _orders[o].adjudicate();
-            }
+        for (var unit in _orders) {   
+            resolve(_orders[unit]);
+        }
     },
 
     /**
-     * Resolves a chronologically ordered array of phases.
+     * Processes a chronologically ordered array of phases.
      * @param  {Array} phases
      * @return {Array} A new phase containing resolved positions.
      */
