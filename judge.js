@@ -1,42 +1,54 @@
+/*
+DEFINITIONS
+
+- Phase: An object containing general information about the turn, as well as a full array of regions with moves (if any) embedded.
+
+- Region: A territory that a unit can occupy.
+
+- Order/Move: A command given to a unit.
+
+- Variant: Static data about how a map plays. Its list of regions is the template for new phases' move lists.
+*/
+
 // Core libs.
 var _ = require('lodash');
 
 // Object definitions.
 var Order = require('./order.js'),
-    ResolutionStatus = require('./resolutionstatus.js'),
     Resolution = require('./resolution.js');
-
-// resolve() stuff.
-var _orders = { },
-    _dependencyList = [];
+    
+// Private variables. Put things that will never change across the lifespan of the judge here.
+var _variant,
+    _graph;
 
 var DiplomacyJudge = module.exports = function(variant, options) {
     if(!(this instanceof DiplomacyJudge)) return new DiplomacyJudge(variant, options);
     if (!variant)
         throw new Error('No variant data supplied.');
+    
+    // Apply defaults to optional variant data.
+    if (!variant.year) {
+        variant.year = [
+            { name: "Spring", type: "move" },
+            { name: "Summer", type: "adjust" },
+            { name: "Fall", type: "move" },
+            { name: "Winter Retreat", type: "adjust" },
+            { name: "Winter Adjustment", type: "build" }
+        ];
+    }
         
     options = options || { };
+    _variant = variant;
+    _graph = _variant.graph;
 };
 
 DiplomacyJudge.prototype = {
     /**
      * Processes one phase of a game.
-     * @param  {Array} phase
+     * @param  {Object} A phase.
      * @return {Array} A new phase containing resolved positions.
      */
     process: function(phase) {
-        var resolve = function(order) {
-            if (order.state === ResolutionStatus.RESOLVED)
-                return order;
-                
-            if (order.state === ResolutionStatus.GUESSING) {
-                if (!_.some(_dependencyList, { u: order.u }))
-                    _dependencyList.push(order);
-                    
-                return order.result;
-            }
-        };
-    
         // A phase is an array of PlayerSeason objects with one object per player.
         if (!phase)
             throw new Error('No phase data supplied.');
@@ -69,15 +81,6 @@ DiplomacyJudge.prototype = {
                 
             if (!playerSeason.moves)
                 throw new Error('The ' + playerSeason.year + ':' + playerSeason.season + ' order season for ' + playerSeason.power + ' contains no orders array.');
-            
-            // Dump this season's orders into a single one-key dictionary of moves.
-            for (var o = 0; o < playerSeason.moves.length; o++)
-                _orders[playerSeason.moves[o].u] = new Order(playerSeason.moves[o]);
-        }
-        
-        // Begin resolution.
-        for (var unit in _orders) {   
-            resolve(_orders[unit]);
         }
     },
 
