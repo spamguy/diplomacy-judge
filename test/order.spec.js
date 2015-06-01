@@ -18,8 +18,9 @@ var sampleJSON = {
 };
 
 describe('Order', function() {
-    it('is unresolved by default', function() {
+    it('is unresolved and error-free by default', function() {
         expect(new Order().isResolving).toBeFalsy();
+        expect(new Order().error).toBe(null);
     });
     
     it('returns null for unitless regions', function() {

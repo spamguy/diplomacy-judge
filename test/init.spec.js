@@ -17,25 +17,3 @@ describe('Init scenarios', function() {
         expect(function() { new judge({ }) }).not.toThrow();
     });
 });
-
-describe('Invalid data scenarios', function() {
-    var p = new judge({ }).process;
-    
-    it('requires phase data', function() {
-        expect(function() { p(); }).toThrow(new Error('No phase data supplied.'));
-    });
-    
-    it('expects all orders\' years to match', function() {
-        var badData = [{ year: 1901, season: 1, power: 'A', moves: [] }, { year: 1902, season: 1, power: 'B', moves: [] }];
-        expect(function() {
-            p(badData);
-        }).toThrow(new Error('The year 1901 is not consistent in this phase\'s orders.'));
-    });
-    
-    it ('expects all orders to have moves[]', function() {
-        var badData = [{ year: 1901, season: 1, power: 'A' }];
-        expect(function() {
-            p(badData);
-        }).toThrow(new Error('The 1901:1 order season for A contains no orders array.'));
-    });
-});

@@ -25,5 +25,9 @@
   "devDependencies": {
     "express": "^4.10.4",
     "supertest": "^0.15.0"
+  },
+  "dependencies": {
+    "lodash": "^3.9.3",
+    "subclass-error": "^0.1.1"
   }
 }
