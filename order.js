@@ -4,7 +4,7 @@ var Error = require('./errors');
 
 function Order() {
     this.isResolving = false;
-    this.error = null;
+    this.resolution = null;
 };
 
 // This is not a constructor because null is an acceptable return value.

@@ -20,7 +20,7 @@ var sampleJSON = {
 describe('Order', function() {
     it('is unresolved and error-free by default', function() {
         expect(new Order().isResolving).toBeFalsy();
-        expect(new Order().error).toBe(null);
+        expect(new Order().resolution).toBe(null);
     });
     
     it('returns null for unitless regions', function() {
