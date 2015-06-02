@@ -1,20 +1,36 @@
 module.exports = Order;
 
-var Error = require('./errors');
+var Error = require('./errors'),
+    OrderType = require('./ordertype');
 
 function Order() {
     this.isResolving = false;
+
+    /**
+     * The definitive outcome of this order.
+     * @type {Error}
+     */
     this.resolution = null;
+
+    /**
+     * The current guessed outcome of this order.
+     * @type {Error}
+     */
+    this.guess = null;
+
+    /**
+     * The type of movement.
+     * @type {OrderType}
+     */
+    this.orderType = OrderType.HOLD;
 };
 
 // This is not a constructor because null is an acceptable return value.
 Order.importOrder = function(data) {
-    var OrderType = require('./ordertype');
-    
     // don't consider regions without units as orders (duh)
     if (!data.unit)
         return null;
-    
+
     var newOrder = new Order();
     switch (data.unit.order.action) {
         case 'move':
@@ -31,6 +47,6 @@ Order.importOrder = function(data) {
             newOrder.orderType = OrderType.HOLD;
             break;
     }
-    
+
     return newOrder;
 };

@@ -21,12 +21,13 @@ describe('Order', function() {
     it('is unresolved and error-free by default', function() {
         expect(new Order().isResolving).toBeFalsy();
         expect(new Order().resolution).toBe(null);
+        expect(new Order().guess).toBe(null);
     });
-    
+
     it('returns null for unitless regions', function() {
         expect(Order.importOrder({ })).toBe(null);
     });
-    
+
     it('imports JSON values correctly', function() {
         var orderObj = Order.importOrder(sampleJSON);
         expect(orderObj.orderType).toBe(OrderType.MOVE);
