@@ -4,6 +4,12 @@ var Error = require('./errors'),
     OrderType = require('./ordertype');
 
 function Order() {
+    /**
+     * The starting location of the unit.
+     * @type {String}
+     */
+    this.region;
+
     this.isResolving = false;
 
     /**
@@ -32,6 +38,7 @@ Order.importOrder = function(data) {
         return null;
 
     var newOrder = new Order();
+    newOrder.region = data.r;
     switch (data.unit.order.action) {
         case 'move':
             newOrder.orderType = OrderType.MOVE;

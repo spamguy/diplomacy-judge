@@ -28,8 +28,18 @@ function Phase(variant, phaseData) {
     }
 };
 
-Phase.resolve = function(order) {
-    log.info('Resolving ' + order.r);
+Phase.prototype.toJSON = function() {
+    moves = this.orders;
+    
+    return {
+        year: this.year,
+        season: this.season,
+        moves: moves
+    };
+};
+
+Phase.prototype.resolve = function(order) {
+    log.info('Resolving ' + order.region);
 
     // don't resolve already-resolved orders (!)
     if (!order.resolution) {
