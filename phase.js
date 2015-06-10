@@ -1,4 +1,14 @@
-var log = require('winston');
+var winston = require('winston'),
+    log;
+if (process.env.NODE_ENV === 'test') {
+    // suppress all logging during unit tests
+    log = new (winston.Logger)({
+        transports: [ ]
+    });
+}
+else {
+    log = winston;
+}
 
 module.exports = Phase;
 
@@ -23,14 +33,13 @@ function Phase(variant, phaseData) {
      */
     for (var o = 0; o < phaseData.moves.length; o++) {
         var move = phaseData.moves[o];
-
         this.orders[move.r] = Order.importOrder(move);
     }
 };
 
 Phase.prototype.toJSON = function() {
     moves = this.orders;
-    
+
     return {
         year: this.year,
         season: this.season,

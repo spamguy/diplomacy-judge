@@ -6,10 +6,14 @@ var fs = require('fs'),
     expect = require('expect.js'),
     _ = require('lodash'),
     Judge = require('../judge'),
-    UnitType = require('../unittype');
+    UnitType = require('../unittype'),
+    OrderType = require('../ordertype');
 
 var variant = null,
     judge = null;
+
+// set environment to 'test' to suppress logging
+process.env.NODE_ENV = 'test';
 
 /*
  * During a unit test parse, a line can be considered in one of several states.
@@ -32,7 +36,8 @@ var clearCommentReg = new RegExp(/^\s*#.*$/),
     caseReg = new RegExp(/^CASE\s+(.*)$/),
     prestateSetPhaseReg = new RegExp(/^PRESTATE_SETPHASE\s+(\S+)\s+(\d+),\s+(\S+)\s*$/),
     stateReg = new RegExp(/^([^:\s]+):?\s+(\S+)\s+(\S+)\s*$/),
-    ordersReg = new RegExp(/^([^:]+):\s+(.*)$/),
+    ordersReg = new RegExp(/([^:]+):\s+\w\s+([\w\/]{3,6})\s*(-|\w*)\s*\w?\s*([\w\/]{3,6})?\s*(?:via [Cc]onvoy|[-H]?\s*([\w\/]{3,6})?)$/),
+    buildOrdersReg = new RegExp(/([^:]+):\s+(\w*)\s+(\w)?\s*([\w\/]{3,6})$/),
     preOrderReg = new RegExp(/^(SUCCESS|FAILURE):\s+([^:]+):\s+(.*)$/);
 
 // substates within unit tests
@@ -50,20 +55,22 @@ var itQueue = [ ],              // queue up it()s to be run later
 
 // wraps enqueued it() tests with correct params
 var itWrapper = function(fn, context, params) {
-        return function() {
-            fn.apply(context, params);
-        };
+    return function() {
+        fn.apply(context, params);
     };
+};
 
 stream.on('error', function(err) {
     console.log(err);
 });
 
 stream.on('data', function(line) {
-    line = line.trim();
+    // strip whitespace and comments
+    line = line.split('#')[0].trim();
 
     var match;
-    if (match = line.match(clearCommentReg)) {
+    if (match = line.match(clearCommentReg) || line === '') {
+        // do nothing
     }
     else if (match = line.match(variantReg)) {
         currentSubstate = UnitTestSubstateType.TEST;
@@ -114,43 +121,88 @@ stream.on('data', function(line) {
         itQueue.push(itWrapper(genericIt, this, [itLabel, judge, beforePhaseData, expectedAfterPhaseData]));
     }
     else {
-        // strip out comments
-        line = line.split('#')[0].trim();
-
         // if none of the above apply, we must be in a substate of some sort
-        if (line !== '') {
-            switch (currentSubstate) {
-                case UnitTestSubstateType.PRESTATE:
-                    match = line.match(stateReg);
-                    var power = match[1][0], // only the first initial is relevant
-                        unitType = match[2],
-                        region = match[3];
-                    unitType = match[2] === 'A' ? UnitType.ARMY : UnitType.FLEET;
+        switch (currentSubstate) {
+            case UnitTestSubstateType.PRESTATE:
+                match = line.match(stateReg);
+                var power = match[1][0], // only the first initial is relevant
+                    unitType = match[2],
+                    region = match[3];
+                unitType = UnitType.toUnitType(unitType);
 
-                    beforePhaseData.moves.push({
-                        r: region.toUpperCase(),
+                beforePhaseData.moves.push({
+                    r: region.toUpperCase(),
+                    unit: {
+                        type: unitType,
+                        power: power,
+                        order: {
+                            // to be filled in at ORDERS state
+                        }
+                    }
+                });
+            break;
+
+            case UnitTestSubstateType.ORDERS:
+                var unitLocation,
+                    unitType,
+                    unitAction,
+                    power,
+                    unitTarget,
+                    unitTargetTarget,
+                    order;
+
+                if (line.toUpperCase().indexOf('BUILD') > 0 || line.toUpperCase().indexOf('REMOVE') > 0) {
+                    match = line.match(buildOrdersReg);
+                    power = match[1][0];
+                    unitAction = match[2];
+                    unitType = match[3];
+                    unitLocation = match[4];
+
+                    // it is assumed a corresponding move was NOT declared in PRESTATE
+                    order = {
+                        r: unitLocation.toUpperCase(),
                         unit: {
-                            type: unitType,
                             power: power,
                             order: {
-                                // to be filled in at ORDERS state
+                                action: OrderType.toOrderType(unitAction)
                             }
                         }
-                    });
-                break;
+                    };
+                    if (unitType)
+                        order.unit.order.unitType = unitType;
+                    beforePhaseData.moves.push(order);
+                }
+                else {
+                    match = line.match(ordersReg);
+                    power = match[1][0]; // only the first initial is relevant
+                    unitLocation = match[2].toUpperCase();
+                    unitAction = match[3];
+                    unitTarget = match[4];
+                    unitTargetTarget = match[5];
 
-                case UnitTestSubstateType.ORDERS:
-                break;
+                    // it is assumed a corresponding unit was declared in PRESTATE
+                    order = _.find(beforePhaseData.moves, { r: unitLocation });
 
-                case UnitTestSubstateType.POSTSTATE:
-                break;
+                    // TODO: after PRESTATE stuff is done, order should always exist
+                    if (order) {
+                        order.unit.power = power;
+                        order.unit.order.action = OrderType.toOrderType(unitAction);
+                        if (order.unit.order.action !== 'hold')
+                            order.unit.order.y1 = unitTarget.toUpperCase();
+                        if (unitTargetTarget) // i.e., target unit exists and is also not holding
+                            order.unit.order.y2 = unitTargetTarget;
+                    }
+                }
+            break;
 
-                case UnitTestSubstateType.POSTSTATE_DISLODGED:
-                break;
+            case UnitTestSubstateType.POSTSTATE:
+            break;
 
-                case UnitTestSubstateType.POSTSTATE_RESULTS:
-                break;
-            }
+            case UnitTestSubstateType.POSTSTATE_DISLODGED:
+            break;
+
+            case UnitTestSubstateType.POSTSTATE_RESULTS:
+            break;
         }
     }
 });
@@ -158,7 +210,9 @@ stream.on('data', function(line) {
 stream.on('end', function() {
     // run all tests
     describe('DATC', function() {
+        try {
         while (itQueue.length > 0)
             (itQueue.shift())();
+        } catch (ex) { console.log(ex); }
     });
 });
