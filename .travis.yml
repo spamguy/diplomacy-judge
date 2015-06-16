@@ -3,3 +3,4 @@ node_js:
   - '0.12'
 before_script:
     - npm install -g grunt-cli
+    - git clone https://github.com/spamguy/diplomacy-variants.git variants

@@ -1,7 +1,8 @@
 // This spec file parses the Diplomacy Adjudication Test Cases file and spits out one Jasmine unit test per item.
 var fs = require('fs'),
+    path = require('path'),
     byline = require('byline'),
-    stream = fs.createReadStream('test/datc_v2.4_06.txt', { encoding: 'utf8' }),
+    stream = fs.createReadStream(path.join(__dirname, 'datc_v2.4_06.txt'), { encoding: 'utf8' }),
     stream = byline.createStream(stream),
     expect = require('expect.js'),
     _ = require('lodash'),
@@ -45,12 +46,20 @@ var inPrestateSetPhaseMode = false;
 
 var itQueue = [ ],              // queue up it()s to be run later
     itLabel = '',
-    currentPhase,
-    expectedPhase,
+    beforePhaseData,
+    expectedPhaseData,
     genericIt = function(l, judge, before, after) {
-        var actualAfter = judge.process(before);
+        // process 'before' phase to produce an 'after'
+        var actualAfter = judge.process(before),
+            indexedActualAfter = _.indexBy(actualAfter.moves, 'r');
 
-        it(l, function() { expect(1).to.equal(1); });
+        // run the unit test
+        it(l, function() {
+            // compare this 'after' to the 'after' predicted by POSTSTATE
+            for (var r = 0; r < after.moves.length; r++) {
+                expect(after.moves[r]).to.eql(indexedActualAfter[after.moves[r].r]);
+            }
+        });
     };
 
 // wraps enqueued it() tests with correct params
@@ -76,7 +85,10 @@ stream.on('data', function(line) {
         currentSubstate = UnitTestSubstateType.TEST;
         // use match in the context of variant file names
         match = _.camelCase(match[1]);
-        variant = JSON.parse(fs.readFileSync('../../variants/' + match + '/' + match + '.json', { encoding: 'utf8' }));
+
+        // HACK: 50% of the time this returns null
+        while (!variant || !variant.regions)
+            variant = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../variants/' + match + '/' + match + '.json'), { encoding: 'utf8' }, function(err) { if (err) throw err; }));
 
         // instantiate judge
         judge = new Judge(variant);
@@ -86,10 +98,19 @@ stream.on('data', function(line) {
         itLabel = match[1];
 
         // start new old/expected phases to build
-        beforePhaseData = expectedAfterPhaseData = { moves: [ ] };
+        beforePhaseData = expectedPhaseData = { year: 1901, season: 1, moves: [ ] };
+
+        // pre-bump expectedPhaseData season
+        expectedPhaseData.season++;
     }
     else if (match = line.match(prestateSetPhaseReg)) {
         currentSubstate = UnitTestSubstateType.TEST;
+        var season = match[1],
+            year = match[2],
+            action = match[3];
+
+        beforePhaseData.year = year;
+        beforePhaseData.season = season;
     }
     else if (line === 'PRESTATE') {
         // enter prestate processing mode
@@ -112,17 +133,41 @@ stream.on('data', function(line) {
     }
     else if (line === 'POSTSTATE_SAME') {
         currentSubstate = UnitTestSubstateType.TEST;
-        expectedAfterPhaseData = beforePhaseData;
+        expectedPhaseData = beforePhaseData;
+    }
+    else if (line === 'POSTSTATE_DISLODGED') {
+        currentSubstate = UnitTestSubstateType.POSTSTATE_DISLODGED;
     }
     else if (line === 'END') {
         currentSubstate = UnitTestSubstateType.TEST;
 
         // test has been built and can be run after the file has been processed
-        itQueue.push(itWrapper(genericIt, this, [itLabel, judge, beforePhaseData, expectedAfterPhaseData]));
+        itQueue.push(itWrapper(genericIt, this, [itLabel, judge, beforePhaseData, expectedPhaseData]));
     }
     else {
         // if none of the above apply, we must be in a substate of some sort
         switch (currentSubstate) {
+            case UnitTestSubstateType.PRESTATE_SUPPLYCENTER:
+                match = line.match(stateReg);
+                var power = match[1][0], // only the first initial is relevant
+                    unitType = match[2],
+                    region = match[3];
+                unitType = UnitType.toUnitType(unitType);
+
+                var order = _.find(beforePhaseData.moves, { r: region.toUpperCase() });
+                if (order) {
+                    order.unit = unitTemplate;
+                }
+                else {
+                    beforePhaseData.moves.push({
+                        r: region.toUpperCase(),
+                        sc: {
+                            ownedBy: power
+                        }
+                    });
+                }
+
+                break;
             case UnitTestSubstateType.PRESTATE:
                 match = line.match(stateReg);
                 var power = match[1][0], // only the first initial is relevant
@@ -130,17 +175,25 @@ stream.on('data', function(line) {
                     region = match[3];
                 unitType = UnitType.toUnitType(unitType);
 
-                beforePhaseData.moves.push({
-                    r: region.toUpperCase(),
-                    unit: {
-                        type: unitType,
-                        power: power,
-                        order: {
-                            // to be filled in at ORDERS state
-                        }
+                var unitTemplate = {
+                    type: unitType,
+                    power: power,
+                    order: {
+                        // to be filled in at ORDERS state
                     }
-                });
-            break;
+                };
+
+                var order = _.find(beforePhaseData.moves, { r: region.toUpperCase() });
+                if (order) {
+                    order.unit = unitTemplate;
+                }
+                else {
+                    beforePhaseData.moves.push({
+                        r: region.toUpperCase(),
+                        unit: unitTemplate
+                    });
+                }
+                break;
 
             case UnitTestSubstateType.ORDERS:
                 var unitLocation,
@@ -193,16 +246,40 @@ stream.on('data', function(line) {
                             order.unit.order.y2 = unitTargetTarget;
                     }
                 }
-            break;
+                break;
 
             case UnitTestSubstateType.POSTSTATE:
-            break;
+                match = line.match(stateReg);
+                var power = match[1][0], // only the first initial is relevant
+                    unitType = match[2],
+                    region = match[3];
+                unitType = UnitType.toUnitType(unitType);
+
+                var unitTemplate = {
+                    type: unitType,
+                    power: power,
+                    order: {
+                        // to be filled in at ORDERS state
+                    }
+                };
+
+                var order = _.find(expectedPhaseData.moves, { r: region.toUpperCase() });
+                if (order) {
+                    order.unit = unitTemplate;
+                }
+                else {
+                    expectedPhaseData.moves.push({
+                        r: region.toUpperCase(),
+                        unit: unitTemplate
+                    });
+                }
+                break;
 
             case UnitTestSubstateType.POSTSTATE_DISLODGED:
-            break;
+                break;
 
             case UnitTestSubstateType.POSTSTATE_RESULTS:
-            break;
+                break;
         }
     }
 });

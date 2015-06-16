@@ -10,17 +10,17 @@ DEFINITIONS
 - Variant: Static data about how a map plays. Its list of regions is the template for new phases' move lists.
 */
 
-// Core libs.
+// core libs
 var _ = require('lodash');
 
-// Object definitions.
+// object definitions
 var Resolution = require('./resolution.js');
 
-// Private variables. Put things that will never change across the lifespan of the judge here.
+// private variables. Put things that will never change across the lifespan of the judge here
 var _variant;
 
 var DiplomacyJudge = module.exports = function(variant, options) {
-    if(!(this instanceof DiplomacyJudge)) return new DiplomacyJudge(variant, options);
+    //if(!(this instanceof DiplomacyJudge)) return new DiplomacyJudge(variant, options);
     if (!variant)
         throw new Error('No variant data supplied.');
 
@@ -52,12 +52,11 @@ DiplomacyJudge.prototype = {
         /* BEGIN! */
 
         var Phase = require('./phase');
-
         var phase = new Phase(_variant, phaseData);
 
         // resolve all orders in no particular...um, order
-        for (var o in phase.orders)
-            phase.resolve(phase.orders[o]);
+        //for (var o in phase.orders)
+        //    phase.resolve(phase.orders[o]);
 
         // return phase as a generic object with less data
         return phase.toJSON();
