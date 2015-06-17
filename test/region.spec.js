@@ -5,12 +5,12 @@ var Region = require('../region'),
     OrderType = require('../ordertype');
 
 var sampleJSON = {
+    r: 'STP/NC',
     unit: {
-        type: 1,
+        type: 2,
         order: {
             action: 'move',
-            x1: 'GRE',
-            y: 'ALB'
+            y: 'BAR'
         }
     }
 };
@@ -25,6 +25,8 @@ describe('Region', function() {
 
     it('imports JSON values correctly', function() {
         var output = new Region(sampleJSON);
-        expect(output.orderType).to.equal(OrderType.MOVE);
+        expect(output.name).to.equal('STP');
+        expect(output.subregion).to.equal('NC');
+        expect(output.order).not.to.be.null;
     });
 });

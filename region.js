@@ -5,11 +5,12 @@ var Error = require('./errors'),
     Order = require('./order');
 
 function Region(data) {
+    var splitName = data.r.split(/[\/\.]/);
     /**
      * The starting location of the unit.
      * @type {String}
      */
-    this.name = data.r;
+    this.name = splitName[0];
 
     if (data.sc)
         this.supplyCentreOwner = data.sc.ownedBy;
@@ -31,25 +32,8 @@ function Region(data) {
      */
     this.guess = null;
 
-    /**
-     * The type of movement.
-     * @type {OrderType}
-     */
-    switch (data.unit.order.action) {
-        case 'move':
-            this.orderType = OrderType.MOVE;
-            break;
-        case 'support':
-            this.orderType = OrderType.SUPPORT;
-            break;
-        case 'convoy':
-            this.orderType = OrderType.CONVOY;
-            break;
-        case 'hold':
-        default:
-            this.orderType = OrderType.HOLD;
-            break;
-    }
+    if (splitName.length > 1)
+        this.subregion = splitName[1];
 };
 
 Region.prototype.toJSON = function() {

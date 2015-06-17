@@ -37,10 +37,12 @@ function Phase(variant, phaseData) {
      * 2. Index Order objects by name
      */
     for (var o = 0; o < phaseData.moves.length; o++) {
-        var move = phaseData.moves[o];
-        if (move.unit && this.orders[move.r.toUpperCase()])
+        var move = phaseData.moves[o],
+            regionIndex = move.r.toUpperCase().split(/[\/\.]/)[0];
+
+        if (move.unit && this.orders[regionIndex])
             this.orders[move.r.toUpperCase()] = new Region(move);
-        else if (!this.orders[move.r.toUpperCase()])
+        else if (!this.orders[regionIndex])
             throw new Error('The region ' + move.r.toUpperCase() + ' does not exist in the variant JSON.');
     }
 };

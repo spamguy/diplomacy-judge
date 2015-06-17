@@ -228,22 +228,27 @@ stream.on('data', function(line) {
                 else {
                     match = line.match(ordersReg);
                     power = match[1][0]; // only the first initial is relevant
-                    unitLocation = match[2].toUpperCase();
+                    unitLocation = match[2].toUpperCase().split(/[\/\.]/);
                     unitAction = match[3];
                     unitTarget = match[4];
                     unitTargetTarget = match[5];
 
+                    if (unitTarget)
+                        unitTarget = unitTarget.toUpperCase().split(/[\/\.]/);
+                    if (unitTargetTarget)
+                        unitTargetTarget = unitTargetTarget.toUpperCase().split(/[\/\.]/);
+
                     // it is assumed a corresponding unit was declared in PRESTATE
-                    order = _.find(beforePhaseData.moves, { r: unitLocation });
+                    order = _.find(beforePhaseData.moves, { r: unitLocation[0] });
 
                     // TODO: after PRESTATE stuff is done, order should always exist
                     if (order) {
                         order.unit.power = power;
                         order.unit.order.action = OrderType.toOrderType(unitAction);
                         if (order.unit.order.action !== 'hold')
-                            order.unit.order.y1 = unitTarget.toUpperCase();
+                            order.unit.order.y1 = unitTarget.join('.');
                         if (unitTargetTarget) // i.e., target unit exists and is also not holding
-                            order.unit.order.y2 = unitTargetTarget;
+                            order.unit.order.y2 = unitTargetTarget.join('.');
                     }
                 }
                 break;
