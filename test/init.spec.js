@@ -1,11 +1,5 @@
-// RUN WITH COMMAND:
-// $ jasmine-node test
+var expect = require('expect.js');
 
-var request = require('supertest'),
-    express = require('express'),
-    expect = require('expect.js');
-
-var app = express();
 var judge = require('../judge.js');
 
 describe('Init scenarios', function() {

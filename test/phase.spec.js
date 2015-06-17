@@ -1,9 +1,5 @@
-var request = require('supertest'),
-    express = require('express'),
-    _ = require('lodash'),
+var _ = require('lodash'),
     expect = require('expect.js');
-
-var app = express();
 
 var Phase = require('../phase');
 
