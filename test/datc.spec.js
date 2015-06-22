@@ -87,10 +87,15 @@ stream.on('data', function(line) {
             // use match in the context of variant file names
             match = _.camelCase(match[1]);
 
-            // HACK: 50% of the time this returns null
-            var variantPath = path.resolve(path.join(__dirname, '../../../variants/' + match + '/' + match + '.json'));
+            var variantPath;
+            if (process.env.TRAVIS)
+                variantPath = path.resolve(path.join(__dirname, '../../variants/' + match + '/' + match + '.json'));
+            else
+                variantPath = path.resolve(path.join(__dirname, '../../../variants/' + match + '/' + match + '.json'));
+
             console.log('Acquiring variant file at ' + variantPath);
 
+            // HACK: 50% of the time this returns null/partial data
             while (!variant || !variant.regions)
                 variant = JSON.parse(fs.readFileSync(variantPath), { encoding: 'utf8' }, function(err) { if (err) throw err; });
 
