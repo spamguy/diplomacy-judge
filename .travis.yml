@@ -4,5 +4,3 @@ node_js:
 before_script:
     - npm install -g grunt-cli
     - git clone https://github.com/spamguy/diplomacy-variants.git variants
-    - cd variants
-    - pwd
