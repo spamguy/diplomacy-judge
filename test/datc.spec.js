@@ -77,215 +77,223 @@ stream.on('data', function(line) {
     // strip whitespace and comments
     line = line.split('#')[0].trim();
 
-    var match;
-    if (match = line.match(clearCommentReg) || line === '') {
-        // do nothing
-    }
-    else if (match = line.match(variantReg)) {
-        currentSubstate = UnitTestSubstateType.TEST;
-        // use match in the context of variant file names
-        match = _.camelCase(match[1]);
+    try {
+        var match;
+        if (match = line.match(clearCommentReg) || line === '') {
+            // do nothing
+        }
+        else if (match = line.match(variantReg)) {
+            currentSubstate = UnitTestSubstateType.TEST;
+            // use match in the context of variant file names
+            match = _.camelCase(match[1]);
 
-        // HACK: 50% of the time this returns null
-        while (!variant || !variant.regions)
-            variant = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../variants/' + match + '/' + match + '.json'), { encoding: 'utf8' }, function(err) { if (err) throw err; }));
+            // HACK: 50% of the time this returns null
+            var variantPath = path.resolve(path.join(__dirname, '../../../variants/' + match + '/' + match + '.json'));
+            console.log('Acquiring variant file at ' + variantPath);
 
-        // instantiate judge
-        judge = new Judge(variant);
-    }
-    else if (match = line.match(caseReg)) {
-        currentSubstate = UnitTestSubstateType.TEST;
-        itLabel = match[1];
+            while (!variant || !variant.regions)
+                variant = JSON.parse(fs.readFileSync(variantPath), { encoding: 'utf8' }, function(err) { if (err) throw err; });
 
-        // start new old/expected phases to build
-        beforePhaseData = expectedPhaseData = { year: 1901, season: 1, moves: [ ] };
+            // instantiate judge
+            judge = new Judge(variant);
+        }
+        else if (match = line.match(caseReg)) {
+            currentSubstate = UnitTestSubstateType.TEST;
+            itLabel = match[1];
 
-        // pre-bump expectedPhaseData season
-        expectedPhaseData.season++;
-    }
-    else if (match = line.match(prestateSetPhaseReg)) {
-        currentSubstate = UnitTestSubstateType.TEST;
-        var season = match[1],
-            year = match[2],
-            action = match[3];
+            // start new old/expected phases to build
+            beforePhaseData = expectedPhaseData = { year: 1901, season: 1, moves: [ ] };
 
-        beforePhaseData.year = year;
-        beforePhaseData.season = season;
-    }
-    else if (line === 'PRESTATE') {
-        // enter prestate processing mode
-        currentSubstate = UnitTestSubstateType.PRESTATE;
-    }
-    else if (line === 'PRESTATE_SUPPLYCENTER_OWNERS') {
-        currentSubstate = UnitTestSubstateType.PRESTATE_SUPPLYCENTER;
-    }
-    else if (line === 'PRESTATE_RESULTS') {
-        currentSubstate = UnitTestSubstateType.PRESTATE_RESULTS;
-    }
-    else if (line === 'PRESTATE_DISLODGED') {
-        currentSubstate = UnitTestSubstateType.PRESTATE_DISLODGED;
-    }
-    else if (line === 'ORDERS') {
-        currentSubstate = UnitTestSubstateType.ORDERS;
-    }
-    else if (line === 'POSTSTATE') {
-        currentSubstate = UnitTestSubstateType.POSTSTATE;
-    }
-    else if (line === 'POSTSTATE_SAME') {
-        currentSubstate = UnitTestSubstateType.TEST;
-        expectedPhaseData = beforePhaseData;
-    }
-    else if (line === 'POSTSTATE_DISLODGED') {
-        currentSubstate = UnitTestSubstateType.POSTSTATE_DISLODGED;
-    }
-    else if (line === 'END') {
-        currentSubstate = UnitTestSubstateType.TEST;
+            // pre-bump expectedPhaseData season
+            expectedPhaseData.season++;
+        }
+        else if (match = line.match(prestateSetPhaseReg)) {
+            currentSubstate = UnitTestSubstateType.TEST;
+            var season = match[1],
+                year = match[2],
+                action = match[3];
 
-        // test has been built and can be run after the file has been processed
-        itQueue.push(itWrapper(genericIt, this, [itLabel, judge, beforePhaseData, expectedPhaseData]));
-    }
-    else {
-        // if none of the above apply, we must be in a substate of some sort
-        switch (currentSubstate) {
-            case UnitTestSubstateType.PRESTATE_SUPPLYCENTER:
-                match = line.match(stateReg);
-                var power = match[1][0], // only the first initial is relevant
-                    unitType = match[2],
-                    region = match[3];
-                unitType = UnitType.toUnitType(unitType);
+            beforePhaseData.year = year;
+            beforePhaseData.season = season;
+        }
+        else if (line === 'PRESTATE') {
+            // enter prestate processing mode
+            currentSubstate = UnitTestSubstateType.PRESTATE;
+        }
+        else if (line === 'PRESTATE_SUPPLYCENTER_OWNERS') {
+            currentSubstate = UnitTestSubstateType.PRESTATE_SUPPLYCENTER;
+        }
+        else if (line === 'PRESTATE_RESULTS') {
+            currentSubstate = UnitTestSubstateType.PRESTATE_RESULTS;
+        }
+        else if (line === 'PRESTATE_DISLODGED') {
+            currentSubstate = UnitTestSubstateType.PRESTATE_DISLODGED;
+        }
+        else if (line === 'ORDERS') {
+            currentSubstate = UnitTestSubstateType.ORDERS;
+        }
+        else if (line === 'POSTSTATE') {
+            currentSubstate = UnitTestSubstateType.POSTSTATE;
+        }
+        else if (line === 'POSTSTATE_SAME') {
+            currentSubstate = UnitTestSubstateType.TEST;
+            expectedPhaseData = beforePhaseData;
+        }
+        else if (line === 'POSTSTATE_DISLODGED') {
+            currentSubstate = UnitTestSubstateType.POSTSTATE_DISLODGED;
+        }
+        else if (line === 'END') {
+            currentSubstate = UnitTestSubstateType.TEST;
 
-                var order = _.find(beforePhaseData.moves, { r: region.toUpperCase() });
-                if (order) {
-                    order.unit = unitTemplate;
-                }
-                else {
-                    beforePhaseData.moves.push({
-                        r: region.toUpperCase(),
-                        sc: {
-                            ownedBy: power
-                        }
-                    });
-                }
+            // test has been built and can be run after the file has been processed
+            itQueue.push(itWrapper(genericIt, this, [itLabel, judge, beforePhaseData, expectedPhaseData]));
+        }
+        else {
+            // if none of the above apply, we must be in a substate of some sort
+            switch (currentSubstate) {
+                case UnitTestSubstateType.PRESTATE_SUPPLYCENTER:
+                    match = line.match(stateReg);
+                    var power = match[1][0], // only the first initial is relevant
+                        unitType = match[2],
+                        region = match[3];
+                    unitType = UnitType.toUnitType(unitType);
 
-                break;
-            case UnitTestSubstateType.PRESTATE:
-                match = line.match(stateReg);
-                var power = match[1][0], // only the first initial is relevant
-                    unitType = match[2],
-                    region = match[3];
-                unitType = UnitType.toUnitType(unitType);
-
-                var unitTemplate = {
-                    type: unitType,
-                    power: power,
-                    order: {
-                        // to be filled in at ORDERS state
+                    var order = _.find(beforePhaseData.moves, { r: region.toUpperCase() });
+                    if (order) {
+                        order.unit = unitTemplate;
                     }
-                };
-
-                var order = _.find(beforePhaseData.moves, { r: region.toUpperCase() });
-                if (order) {
-                    order.unit = unitTemplate;
-                }
-                else {
-                    beforePhaseData.moves.push({
-                        r: region.toUpperCase(),
-                        unit: unitTemplate
-                    });
-                }
-                break;
-
-            case UnitTestSubstateType.ORDERS:
-                var unitLocation,
-                    unitType,
-                    unitAction,
-                    power,
-                    unitTarget,
-                    unitTargetTarget,
-                    order;
-
-                if (line.toUpperCase().indexOf('BUILD') > 0 || line.toUpperCase().indexOf('REMOVE') > 0) {
-                    match = line.match(buildOrdersReg);
-                    power = match[1][0];
-                    unitAction = match[2];
-                    unitType = match[3];
-                    unitLocation = match[4];
-
-                    // it is assumed a corresponding move was NOT declared in PRESTATE
-                    order = {
-                        r: unitLocation.toUpperCase(),
-                        unit: {
-                            power: power,
-                            order: {
-                                action: OrderType.toOrderType(unitAction)
+                    else {
+                        beforePhaseData.moves.push({
+                            r: region.toUpperCase(),
+                            sc: {
+                                ownedBy: power
                             }
+                        });
+                    }
+
+                    break;
+                case UnitTestSubstateType.PRESTATE:
+                    match = line.match(stateReg);
+                    var power = match[1][0], // only the first initial is relevant
+                        unitType = match[2],
+                        region = match[3];
+                    unitType = UnitType.toUnitType(unitType);
+
+                    var unitTemplate = {
+                        type: unitType,
+                        power: power,
+                        order: {
+                            // to be filled in at ORDERS state
                         }
                     };
-                    if (unitType)
-                        order.unit.order.unitType = unitType;
-                    beforePhaseData.moves.push(order);
-                }
-                else {
-                    match = line.match(ordersReg);
-                    power = match[1][0]; // only the first initial is relevant
-                    unitLocation = match[2].toUpperCase().split(/[\/\.]/);
-                    unitAction = match[3];
-                    unitTarget = match[4];
-                    unitTargetTarget = match[5];
 
-                    if (unitTarget)
-                        unitTarget = unitTarget.toUpperCase().split(/[\/\.]/);
-                    if (unitTargetTarget)
-                        unitTargetTarget = unitTargetTarget.toUpperCase().split(/[\/\.]/);
-
-                    // it is assumed a corresponding unit was declared in PRESTATE
-                    order = _.find(beforePhaseData.moves, { r: unitLocation[0] });
-
-                    // TODO: after PRESTATE stuff is done, order should always exist
+                    var order = _.find(beforePhaseData.moves, { r: region.toUpperCase() });
                     if (order) {
-                        order.unit.power = power;
-                        order.unit.order.action = OrderType.toOrderType(unitAction);
-                        if (order.unit.order.action !== 'hold')
-                            order.unit.order.y1 = unitTarget.join('.');
-                        if (unitTargetTarget) // i.e., target unit exists and is also not holding
-                            order.unit.order.y2 = unitTargetTarget.join('.');
+                        order.unit = unitTemplate;
                     }
-                }
-                break;
-
-            case UnitTestSubstateType.POSTSTATE:
-                match = line.match(stateReg);
-                var power = match[1][0], // only the first initial is relevant
-                    unitType = match[2],
-                    region = match[3];
-                unitType = UnitType.toUnitType(unitType);
-
-                var unitTemplate = {
-                    type: unitType,
-                    power: power,
-                    order: {
-                        // to be filled in at ORDERS state
+                    else {
+                        beforePhaseData.moves.push({
+                            r: region.toUpperCase(),
+                            unit: unitTemplate
+                        });
                     }
-                };
+                    break;
 
-                var order = _.find(expectedPhaseData.moves, { r: region.toUpperCase() });
-                if (order) {
-                    order.unit = unitTemplate;
-                }
-                else {
-                    expectedPhaseData.moves.push({
-                        r: region.toUpperCase(),
-                        unit: unitTemplate
-                    });
-                }
-                break;
+                case UnitTestSubstateType.ORDERS:
+                    var unitLocation,
+                        unitType,
+                        unitAction,
+                        power,
+                        unitTarget,
+                        unitTargetTarget,
+                        order;
 
-            case UnitTestSubstateType.POSTSTATE_DISLODGED:
-                break;
+                    if (line.toUpperCase().indexOf('BUILD') > 0 || line.toUpperCase().indexOf('REMOVE') > 0) {
+                        match = line.match(buildOrdersReg);
+                        power = match[1][0];
+                        unitAction = match[2];
+                        unitType = match[3];
+                        unitLocation = match[4];
 
-            case UnitTestSubstateType.POSTSTATE_RESULTS:
-                break;
+                        // it is assumed a corresponding move was NOT declared in PRESTATE
+                        order = {
+                            r: unitLocation.toUpperCase(),
+                            unit: {
+                                power: power,
+                                order: {
+                                    action: OrderType.toOrderType(unitAction)
+                                }
+                            }
+                        };
+                        if (unitType)
+                            order.unit.order.unitType = unitType;
+                        beforePhaseData.moves.push(order);
+                    }
+                    else {
+                        match = line.match(ordersReg);
+                        power = match[1][0]; // only the first initial is relevant
+                        unitLocation = match[2].toUpperCase().split(/[\/\.]/);
+                        unitAction = match[3];
+                        unitTarget = match[4];
+                        unitTargetTarget = match[5];
+
+                        if (unitTarget)
+                            unitTarget = unitTarget.toUpperCase().split(/[\/\.]/);
+                        if (unitTargetTarget)
+                            unitTargetTarget = unitTargetTarget.toUpperCase().split(/[\/\.]/);
+
+                        // it is assumed a corresponding unit was declared in PRESTATE
+                        order = _.find(beforePhaseData.moves, { r: unitLocation[0] });
+
+                        // TODO: after PRESTATE stuff is done, order should always exist
+                        if (order) {
+                            order.unit.power = power;
+                            order.unit.order.action = OrderType.toOrderType(unitAction);
+                            if (order.unit.order.action !== 'hold')
+                                order.unit.order.y1 = unitTarget.join('.');
+                            if (unitTargetTarget) // i.e., target unit exists and is also not holding
+                                order.unit.order.y2 = unitTargetTarget.join('.');
+                        }
+                    }
+                    break;
+
+                case UnitTestSubstateType.POSTSTATE:
+                    match = line.match(stateReg);
+                    var power = match[1][0], // only the first initial is relevant
+                        unitType = match[2],
+                        region = match[3];
+                    unitType = UnitType.toUnitType(unitType);
+
+                    var unitTemplate = {
+                        type: unitType,
+                        power: power,
+                        order: {
+                            // to be filled in at ORDERS state
+                        }
+                    };
+
+                    var order = _.find(expectedPhaseData.moves, { r: region.toUpperCase() });
+                    if (order) {
+                        order.unit = unitTemplate;
+                    }
+                    else {
+                        expectedPhaseData.moves.push({
+                            r: region.toUpperCase(),
+                            unit: unitTemplate
+                        });
+                    }
+                    break;
+
+                case UnitTestSubstateType.POSTSTATE_DISLODGED:
+                    break;
+
+                case UnitTestSubstateType.POSTSTATE_RESULTS:
+                    break;
+            }
         }
+    } catch (ex) {
+        console.error('Failure processing line \'' + line + '\': ' + ex);
+        throw ex;
     }
 });
 
