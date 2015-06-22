@@ -89,7 +89,7 @@ stream.on('data', function(line) {
 
             var variantPath;
             if (process.env.TRAVIS)
-                variantPath = path.resolve(path.join(__dirname, '../../variants/' + match + '/' + match + '.json'));
+                variantPath = path.resolve(path.join(__dirname, 'variants/' + match + '/' + match + '.json'));
             else
                 variantPath = path.resolve(path.join(__dirname, '../../../variants/' + match + '/' + match + '.json'));
 
