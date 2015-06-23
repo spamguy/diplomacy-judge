@@ -40,7 +40,7 @@ function Phase(variant, phaseData) {
         var move = phaseData.moves[o],
             regionIndex = move.r.toUpperCase().split(/[\/\.]/)[0];
 
-        if (move.unit && this.orders[regionIndex])
+        if (this.orders[regionIndex])
             this.orders[move.r.toUpperCase()] = new Region(move);
         else if (!this.orders[regionIndex])
             throw new Error('The region ' + move.r.toUpperCase() + ' does not exist in the variant JSON.');

@@ -21,12 +21,6 @@ function Region(data) {
     this.isResolving = false;
 
     /**
-     * The definitive outcome of this order.
-     * @type {Error}
-     */
-    this.resolution = null;
-
-    /**
      * The current guessed outcome of this order.
      * @type {Error}
      */
@@ -38,10 +32,12 @@ function Region(data) {
 
 Region.prototype.toJSON = function() {
     var jsonOrder = {
-        r: this.region
+        r: this.name
     };
     if (this.supplyCentreOwner)
         jsonOrder.sc = { ownedBy: this.supplyCentreOwner };
+    if (this.order)
+        jsonOrder.unit = this.order.toJSON();
 
     return jsonOrder;
 };

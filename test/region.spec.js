@@ -19,7 +19,6 @@ describe('Region', function() {
     it('is unresolved and error-free by default', function() {
         var output = new Region(sampleJSON);
         expect(output.isResolving).to.equal(false);
-        expect(output.resolution).to.equal(null);
         expect(output.guess).to.equal(null);
     });
 

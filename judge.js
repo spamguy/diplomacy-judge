@@ -55,10 +55,10 @@ DiplomacyJudge.prototype = {
         var phase = new Phase(_variant, phaseData);
 
         // resolve all orders in no particular...um, order
-        //for (var o in phase.orders)
-        //    phase.resolve(phase.orders[o]);
+        for (var o in phase.orders)
+           phase.resolve(phase.orders[o]);
 
-        // return phase as a generic object with less data
+        // return phase as a generic object
         return phase.toJSON();
     },
 
@@ -68,6 +68,15 @@ DiplomacyJudge.prototype = {
      * @return {Object} A new phase containing resolved positions.
      */
     processAll: function(phases) {
+
+    },
+
+    /**
+     * Generates a new phase based on markup applied in process()/processAll().
+     * @param  {Phase} phase The phase.
+     * @return {Phase}       A new phase with orders resolved.
+     */
+    generateNewSeason: function(phase) {
 
     }
 };

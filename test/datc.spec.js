@@ -48,10 +48,13 @@ var itQueue = [ ],              // queue up it()s to be run later
     itLabel = '',
     beforePhaseData,
     expectedPhaseData,
+    expectedResolvedPhaseData,
     genericIt = function(l, judge, before, after) {
         // process 'before' phase to produce an 'after'
         var actualAfter = judge.process(before),
-            indexedActualAfter = _.indexBy(actualAfter.moves, 'r');
+            actualAfterResolved = judge.generateNewSeason(actualAfter),
+            indexedActualAfter = _.indexBy(actualAfter.moves, 'r'),
+            indexedActualAfterResolved = _.indexBy(actualAfterResolved);
 
         // run the unit test
         it(l, function() {
@@ -107,7 +110,8 @@ stream.on('data', function(line) {
             itLabel = match[1];
 
             // start new old/expected phases to build
-            beforePhaseData = expectedPhaseData = { year: 1901, season: 1, moves: [ ] };
+            beforePhaseData = { year: 1901, season: 1, moves: [ ] };
+            expectedPhaseData = { year: 1901, season: 1, moves: [ ] };
 
             // pre-bump expectedPhaseData season
             expectedPhaseData.season++;
@@ -142,7 +146,7 @@ stream.on('data', function(line) {
         }
         else if (line === 'POSTSTATE_SAME') {
             currentSubstate = UnitTestSubstateType.TEST;
-            expectedPhaseData = beforePhaseData;
+            expectedPhaseData = _.cloneDeep(beforePhaseData);
         }
         else if (line === 'POSTSTATE_DISLODGED') {
             currentSubstate = UnitTestSubstateType.POSTSTATE_DISLODGED;
@@ -248,16 +252,18 @@ stream.on('data', function(line) {
                             unitTargetTarget = unitTargetTarget.toUpperCase().split(/[\/\.]/);
 
                         // it is assumed a corresponding unit was declared in PRESTATE
-                        order = _.find(beforePhaseData.moves, { r: unitLocation[0] });
+                        for (var b = 0; b < beforePhaseData.moves.length; b++) {
+                            if (beforePhaseData.moves[b].r !== unitLocation[0])
+                                continue;
 
-                        // TODO: after PRESTATE stuff is done, order should always exist
-                        if (order) {
-                            order.unit.power = power;
-                            order.unit.order.action = OrderType.toOrderType(unitAction);
-                            if (order.unit.order.action !== 'hold')
-                                order.unit.order.y1 = unitTarget.join('.');
+                            // TODO: after PRESTATE stuff is done, order should always exist
+                            beforePhaseData.moves[b].unit.power = power;
+                            beforePhaseData.moves[b].unit.order.action = OrderType.toOrderType(unitAction);
+                            if (beforePhaseData.moves[b].unit.order.action !== 'hold')
+                                beforePhaseData.moves[b].unit.order.y1 = unitTarget.join('.');
                             if (unitTargetTarget) // i.e., target unit exists and is also not holding
-                                order.unit.order.y2 = unitTargetTarget.join('.');
+                                beforePhaseData.moves[b].unit.order.y2 = unitTargetTarget.join('.');
+                            break;
                         }
                     }
                     break;
