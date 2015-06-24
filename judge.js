@@ -77,6 +77,26 @@ DiplomacyJudge.prototype = {
      * @return {Phase}       A new phase with orders resolved.
      */
     generateNewSeason: function(phase) {
+        for (var m = 0; m < phase.moves.length; m++) {
+            // nothing to clean up
+            if (!phase.moves[m].units)
+                continue;
 
+            var move = phase.moves[m];
+
+            for (var u = 0; u < move.units.length; u++) {
+                if (move.units[u].result === 'fail') {
+
+                }
+                else if (move.units[u].result === 'success') {
+
+                }
+
+                // clear properties added in process()/processAll()
+                delete move.units[u].order;
+            }
+        }
+
+        return phase;
     }
 };

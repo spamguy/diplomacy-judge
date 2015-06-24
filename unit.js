@@ -1,13 +1,20 @@
-var OrderType = require('./ordertype');
+var OrderType = require('./ordertype'),
+    UnitType = require('./unittype');
 
-module.exports = Order;
+module.exports = Unit;
 
-function Order(data) {
+function Unit(data) {
     /**
      * The type of movement.
      * @type {OrderType}
      */
     this.orderType = OrderType.HOLD;
+
+    /**
+     * The type of unit occupying the region.
+     * @type {Number}
+     */
+    this.unitType = UnitType.toUnitType(data.type);
 
     /**
      * The power owning this unit.
@@ -26,6 +33,12 @@ function Order(data) {
      */
     if (data.order.y2)
         this.targetRegionOfTargetRegion = data.order.y2;
+
+    /**
+     * Whether the unit is dislodged.
+     */
+    if (data.dislodged)
+        this.isDislodged = data.dislodged;
 
     switch (data.order.action) {
         case 'move':
@@ -50,11 +63,15 @@ function Order(data) {
     this.resolution = null;
 }
 
-Order.prototype.toJSON = function() {
+Unit.prototype.toJSON = function() {
+    // FIXME: obviously not everything will fail, and obviously not for the reason of 'because'
     var jsonOrder = {
         power: this.power,
+        type: this.unitType,
         order: {
             action: OrderType.toOrderType(this.orderType),
+            result: 'fail',
+            details: 'because'
         }
     };
 
@@ -62,6 +79,8 @@ Order.prototype.toJSON = function() {
         jsonOrder.order.y1 = this.targetRegion;
     if (this.targetRegionOfTargetRegion)
         jsonOrder.order.y2 = this.targetRegionOfTargetRegion;
+    if (this.isDislodged)
+        jsonOrder.dislodged = true;
 
     return jsonOrder;
 };

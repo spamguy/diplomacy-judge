@@ -3,10 +3,12 @@ module.exports = {
     FLEET: 2,
 
     toUnitType: function(name) {
-        switch (name.toUpperCase()) {
+        switch (name.toString().toUpperCase()) {
+            case '1':
             case 'A':
             case 'ARMY':
                 return this.ARMY;
+            case '2':
             case 'F':
             case 'FLEET':
                 return this.FLEET;
