@@ -19,17 +19,32 @@ describe('Phase', function() {
             season: 1,
             moves: [{
                     r: 'ABC',
-                    unit: { order: { } }
+                    units: [{
+                        type: 1,
+                        order: {
+                            action: 'hold',
+                        }
+                    }]
                 }, {
                     r: 'DEF',
-                    unit: { order: { } }
+                    units: [{
+                        type: 1,
+                        order: {
+                            action: 'hold',
+                        }
+                    }]
                 }, {
                     r: 'GHI',
-                    unit: { order: { } }
+                    units: [{
+                        type: 1,
+                        order: {
+                            action: 'hold',
+                        }
+                    }]
                 }
             ]
         };
         var phase = new Phase(variant, samplePhaseJson);
-        expect(_.keys(phase.orders)).to.have.length(3);
+        expect(_.keys(phase.provinces)).to.have.length(3);
     });
 });

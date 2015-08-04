@@ -168,7 +168,7 @@ stream.on('data', function(line) {
                     match = line.match(stateReg);
                     var power = match[1][0], // only the first initial is relevant
                         unitType = match[2],
-                        region = match[3],
+                        region = match[3].toUpperCase(),
                         b;
                     unitType = UnitType.toUnitType(unitType);
 
@@ -182,7 +182,7 @@ stream.on('data', function(line) {
                     // if no region found, push it
                     if (b === beforePhaseData.moves.length) {
                         beforePhaseData.moves.push({
-                            r: region.toUpperCase(),
+                            r: region,
                             sc: {
                                 ownedBy: power
                             }
@@ -194,20 +194,23 @@ stream.on('data', function(line) {
                     match = line.match(stateReg);
                     var power = match[1][0], // only the first initial is relevant
                         unitType = match[2],
-                        region = match[3],
+                        region = match[3].toUpperCase().split(/[\/\.]/),
                         b;
                     unitType = UnitType.toUnitType(unitType);
 
-                    var unitTemplate = {
+                    var unitTemplate = _.pick({
+                        sr: region[1],
                         type: unitType,
                         power: power,
                         order: {
                             // to be filled in at ORDERS state
                         }
-                    };
+                    }, _.identity);
 
                     for (b = 0; b < beforePhaseData.moves.length; b++) {
-                        if (beforePhaseData.moves[b].r === region) {
+                        if (beforePhaseData.moves[b].r === region[0]) {
+                            if (!beforePhaseData.moves[b].units)
+                                beforePhaseData.moves[b].units = [];
                             beforePhaseData.moves[b].units.push(unitTemplate);
                             break;
                         }
@@ -216,7 +219,7 @@ stream.on('data', function(line) {
                     // if no region found, push it
                     if (b === beforePhaseData.moves.length) {
                         beforePhaseData.moves.push({
-                            r: region.toUpperCase(),
+                            r: region[0],
                             units: [ unitTemplate ]
                         });
                     }
@@ -287,17 +290,17 @@ stream.on('data', function(line) {
                     match = line.match(stateReg);
                     var power = match[1][0], // only the first initial is relevant
                         unitType = match[2],
-                        region = match[3],
+                        region = match[3].toUpperCase().split(/[\/\.]/),
                         b;
                     unitType = UnitType.toUnitType(unitType);
-
-                    var unitTemplate = {
+                    var unitTemplate = _.pick({
+                        sr: region[1],
                         type: unitType,
                         power: power
-                    };
+                    }, _.identity);
 
                     for (b = 0; b < expectedPhaseData.moves.length; b++) {
-                        if (expectedPhaseData.moves[b].r === region) {
+                        if (expectedPhaseData.moves[b].r === region[0]) {
                             expectedPhaseData.units.push(unitTemplate);
                             break;
                         }
@@ -306,7 +309,7 @@ stream.on('data', function(line) {
                     // if no region found, push it
                     if (b === expectedPhaseData.moves.length) {
                         expectedPhaseData.moves.push({
-                            r: region.toUpperCase(),
+                            r: region[0].toUpperCase(),
                             units: [ unitTemplate ]
                         });
                     }

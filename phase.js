@@ -15,7 +15,7 @@ module.exports = Phase;
 
 var _dependencies = [ ];
 
-var Region = require('./region.js');
+var Province = require('./province.js');
 
 function Phase(variant, phaseData) {
     if (!phaseData.moves)
@@ -28,23 +28,12 @@ function Phase(variant, phaseData) {
     this.variant = variant;
 
     /**
-    string -> Order dictionary
+    string -> Province dictionary
     **/
-    this.orders = _.indexBy(this.variant.regions, 'r');
-
-    /*
-     * 1. order JSON + graph JSON = Order()
-     * 2. Index Order objects by name
-     */
-    for (var o = 0; o < phaseData.moves.length; o++) {
-        var move = phaseData.moves[o],
-            regionIndex = move.r.toUpperCase().split(/[\/\.]/)[0];
-
-        if (this.orders[regionIndex])
-            this.orders[move.r.toUpperCase()] = new Region(move);
-        else if (!this.orders[regionIndex])
-            throw new Error('The region ' + move.r.toUpperCase() + ' does not exist in the variant JSON.');
-    }
+    this.provinces = { };
+    var moveDictionary = _.indexBy(phaseData.moves, 'r');
+    for (var p = 0; p < this.variant.regions.length; p++)
+        this.provinces[this.variant.regions[p].r] = new Province(this.variant.regions[p], moveDictionary[this.variant.regions[p].r]);//_.indexBy(this.variant.regions, 'r');
 };
 
 Phase.prototype.toJSON = function() {
@@ -54,25 +43,32 @@ Phase.prototype.toJSON = function() {
         moves: [ ]
     };
 
-    for (var o in this.orders) {
-        // order might be raw JSON from the variant file, or it might be an object
-        if (this.orders[o].toJSON)
-            jsonOrder.moves.push(this.orders[o].toJSON());
-        else
-            jsonOrder.moves.push(this.orders[o]);
-    }
+    for (var o in this.provinces)
+        jsonOrder.moves.push(this.provinces[o].toJSON());
 
     return jsonOrder;
 };
 
-Phase.prototype.resolve = function(order) {
-    log.info('Resolving ' + order.region);
+Phase.prototype.resolve = function(province) {
+    log.info('Resolving ' + province.getFullName());
 
     // don't resolve already-resolved orders (!)
-    if (!order.resolution) {
+    if (!province.resolution) {
         // don't mess with orders in a guess state
-        if (!order.guess) {
+        if (!province.guess) {
+            if (province.isResolving) {
 
+            }
+            else {
+                // use isResolving as semaphore before adjudicating
+                province.isResolving = true;
+                var result = province.adjudicate();
+                province.isResolving = false;
+
+                if (province.guess) {
+                    log.info('Guess made for ' + province.getFullName());
+                }
+            }
         }
         else {
             log.info('Guessed');
@@ -81,7 +77,4 @@ Phase.prototype.resolve = function(order) {
     else {
         log.info('Already resolved');
     }
-};
-
-Phase.adjudicate = function(order) {
 };

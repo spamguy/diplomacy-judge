@@ -11,6 +11,12 @@ function Unit(data) {
     this.orderType = OrderType.HOLD;
 
     /**
+     * The subregion in which the unit is located.
+     */
+    if (data.sr)
+        this.subregion = data.sr;
+
+    /**
      * The type of unit occupying the region.
      * @type {Number}
      */
@@ -29,7 +35,7 @@ function Unit(data) {
         this.targetRegion = data.order.y1;
 
     /**
-     * The target region of the target region (for example, supporting a moving unit)
+     * The target region of the target region (for example, supporting a moving unit).
      */
     if (data.order.y2)
         this.targetRegionOfTargetRegion = data.order.y2;
@@ -81,6 +87,8 @@ Unit.prototype.toJSON = function() {
         jsonOrder.order.y2 = this.targetRegionOfTargetRegion;
     if (this.isDislodged)
         jsonOrder.dislodged = true;
+    if (this.subregion)
+        jsonOrder.sr = this.subregion;
 
     return jsonOrder;
 };

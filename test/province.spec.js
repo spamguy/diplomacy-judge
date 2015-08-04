@@ -1,31 +1,35 @@
 var expect = require('expect.js');
 
-var Region = require('../region'),
+var Province = require('../province'),
     UnitType = require('../unittype'),
     OrderType = require('../ordertype');
 
 var sampleJSON = {
     r: 'STP/NC',
-    unit: {
+    units: [{
         type: 2,
         order: {
             action: 'move',
             y: 'BAR'
         }
-    }
+    }]
 };
 
-describe('Region', function() {
+describe('Province', function() {
     it('is unresolved and error-free by default', function() {
-        var output = new Region(sampleJSON);
+        var output = new Province(sampleJSON);
         expect(output.isResolving).to.equal(false);
         expect(output.guess).to.equal(null);
     });
 
     it('imports JSON values correctly', function() {
-        var output = new Region(sampleJSON);
+        var output = new Province(sampleJSON);
         expect(output.name).to.equal('STP');
         expect(output.subregion).to.equal('NC');
         expect(output.order).not.to.be.null;
     });
+
+    it('outputs the full name', function() {
+        expect(new Province(sampleJSON).getFullName()).to.equal('STP.NC');
+    })
 });

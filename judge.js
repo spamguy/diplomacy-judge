@@ -54,9 +54,9 @@ DiplomacyJudge.prototype = {
         var Phase = require('./phase');
         var phase = new Phase(_variant, phaseData);
 
-        // resolve all orders in no particular...um, order
-        for (var o in phase.orders)
-           phase.resolve(phase.orders[o]);
+        // resolve all provinces in no particular order
+        for (var p in phase.provinces)
+            phase.resolve(phase.provinces[p]);
 
         // return phase as a generic object
         return phase.toJSON();
