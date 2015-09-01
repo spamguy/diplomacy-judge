@@ -19,7 +19,6 @@ describe('Province', function() {
     it('is unresolved and error-free by default', function() {
         var output = new Province(sampleJSON);
         expect(output.isResolving).to.equal(false);
-        expect(output.guess).to.equal(null);
     });
 
     it('imports JSON values correctly', function() {

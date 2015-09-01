@@ -1,6 +1,6 @@
 module.exports = Province;
 
-var Error = require('./errors'),
+var JudgeError = require('./errors'),
     OrderType = require('./ordertype'),
     Unit = require('./unit');
 
@@ -27,15 +27,9 @@ function Province(data, orders) {
      */
     this.isResolving = false;
 
-    /**
-     * The current guessed outcome of this order.
-     * @type {Error}
-     */
-    this.guess = null;
-
     if (splitName.length > 1)
         this.subregion = splitName[1];
-};
+}
 
 /**
  * Returns the full name of the province, including any applicable subregion.
@@ -61,8 +55,4 @@ Province.prototype.toJSON = function() {
     }
 
     return jsonOrder;
-};
-
-Province.prototype.adjudicate = function() {
-
 };

@@ -14,7 +14,7 @@ var variant = null,
     judge = null;
 
 // set environment to 'test' to suppress logging
-process.env.NODE_ENV = 'test';
+//process.env.NODE_ENV = 'test';
 
 /*
  * During a unit test parse, a line can be considered in one of several states.

@@ -57,6 +57,8 @@ function Unit(data) {
             this.orderType = OrderType.CONVOY;
             break;
         case 'hold':
+            this.orderType = OrderType.HOLD;
+            break;
         default:
             this.orderType = OrderType.HOLD;
             break;
@@ -91,4 +93,7 @@ Unit.prototype.toJSON = function() {
         jsonOrder.sr = this.subregion;
 
     return jsonOrder;
+};
+
+Unit.prototype.adjudicate = function() {
 };
