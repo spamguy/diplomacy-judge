@@ -51,7 +51,7 @@ var itQueue = [ ],              // queue up it()s to be run later
     expectedResolvedPhaseData,
     genericIt = function(l, judge, before, after) {
         // process 'before' phase to produce an 'after'
-        var actualAfter = judge.generateNewSeason(judge.process(before)),
+        var actualAfter = judge.process(before),
             indexedActualAfter = _.indexBy(actualAfter.moves, 'r');
 
         // run the unit test
@@ -146,10 +146,9 @@ stream.on('data', function(line) {
             currentSubstate = UnitTestSubstateType.TEST;
             expectedPhaseData = _.cloneDeep(beforePhaseData);
 
-            // clear orders in expectations, because order data will be scrubbed by the judge
+            // Clear orders in expectations, because order data will be scrubbed by the judge.
             for (var m = 0; m < expectedPhaseData.moves.length; m++) {
-                for (var u = 0; u < expectedPhaseData.moves[m].units.length; u++)
-                    delete expectedPhaseData.moves[m].units[u].order;
+                delete expectedPhaseData.moves[m].unit.order;
             }
         }
         else if (line === 'POSTSTATE_DISLODGED') {
@@ -203,24 +202,22 @@ stream.on('data', function(line) {
                         type: unitType,
                         power: power,
                         order: {
-                            // to be filled in at ORDERS state
+                            // To be filled in at ORDERS state.
                         }
                     }, _.identity);
 
                     for (b = 0; b < beforePhaseData.moves.length; b++) {
                         if (beforePhaseData.moves[b].r === region[0]) {
-                            if (!beforePhaseData.moves[b].units)
-                                beforePhaseData.moves[b].units = [];
-                            beforePhaseData.moves[b].units.push(unitTemplate);
+                            beforePhaseData.moves[b].unit = unitTemplate;
                             break;
                         }
                     }
 
-                    // if no region found, push it
+                    // If no region found, push it.
                     if (b === beforePhaseData.moves.length) {
                         beforePhaseData.moves.push({
                             r: region[0],
-                            units: [ unitTemplate ]
+                            unit: unitTemplate
                         });
                     }
                     break;
@@ -244,15 +241,15 @@ stream.on('data', function(line) {
                         // it is assumed a corresponding move was NOT declared in PRESTATE
                         order = {
                             r: unitLocation.toUpperCase(),
-                            units: [{
+                            unit: {
                                 power: power,
                                 order: {
                                     action: OrderType.toOrderType(unitAction)
                                 }
-                            }]
+                            }
                         };
                         if (unitType)
-                            order.units[0].order.unitType = unitType;
+                            order.unit.order.unitType = unitType;
                         beforePhaseData.moves.push(order);
                     }
                     else {
@@ -275,12 +272,12 @@ stream.on('data', function(line) {
                                 continue;
 
                             // TODO: after PRESTATE stuff is done, order should always exist
-                            beforePhaseData.moves[b].units[0].power = power;
-                            beforePhaseData.moves[b].units[0].order.action = OrderType.toOrderType(unitAction);
-                            if (beforePhaseData.moves[b].units[0].order.action !== 'hold')
-                                beforePhaseData.moves[b].units[0].order.y1 = unitTarget.join('.');
+                            beforePhaseData.moves[b].unit.power = power;
+                            beforePhaseData.moves[b].unit.order.action = OrderType.toOrderType(unitAction);
+                            if (beforePhaseData.moves[b].unit.order.action !== 'hold')
+                                beforePhaseData.moves[b].unit.order.y1 = unitTarget.join('.');
                             if (unitTargetTarget) // i.e., target unit exists and is also not holding
-                                beforePhaseData.moves[b].units[0].order.y2 = unitTargetTarget.join('.');
+                                beforePhaseData.moves[b].unit.order.y2 = unitTargetTarget.join('.');
                             break;
                         }
                     }
@@ -301,7 +298,7 @@ stream.on('data', function(line) {
 
                     for (b = 0; b < expectedPhaseData.moves.length; b++) {
                         if (expectedPhaseData.moves[b].r === region[0]) {
-                            expectedPhaseData.units.push(unitTemplate);
+                            expectedPhaseData.unit = unitTemplate;
                             break;
                         }
                     }
@@ -310,7 +307,7 @@ stream.on('data', function(line) {
                     if (b === expectedPhaseData.moves.length) {
                         expectedPhaseData.moves.push({
                             r: region[0].toUpperCase(),
-                            units: [ unitTemplate ]
+                            unit: unitTemplate
                         });
                     }
                     break;

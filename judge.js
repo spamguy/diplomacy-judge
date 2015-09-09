@@ -10,13 +10,13 @@ DEFINITIONS
 - Variant: Static data about how a map plays. Its list of regions is the template for new phases' move lists.
 */
 
-// core libs
+// Core libs.
 var _ = require('lodash');
 
-// object definitions
-var Resolution = require('./resolution.js');
+// Object definitions.
+var State = require('./State');
 
-// private variables. Put things that will never change across the lifespan of the judge here
+// Private variables and things meant to last the lifespan of the judge.
 var _variant;
 
 var DiplomacyJudge = module.exports = function(variant, options) {
@@ -51,17 +51,10 @@ DiplomacyJudge.prototype = {
 
         /* BEGIN! */
 
-        var Phase = require('./phase');
-        var phase = new Phase(_variant, phaseData);
+        var state = new State(_variant, phaseData),
+            nextState = state.next();
 
-        // resolve all provinces in no particular order
-        for (var p in phase.provinces) {
-            if (phase.provinces[p].orders)
-                phase.resolve(phase.provinces[p]);
-        }
-
-        // return phase as a generic object
-        return phase.toJSON();
+        return nextState.toJSON();
     },
 
     /**
@@ -71,34 +64,5 @@ DiplomacyJudge.prototype = {
      */
     processAll: function(phases) {
 
-    },
-
-    /**
-     * Generates a new phase based on markup applied in process()/processAll().
-     * @param  {Phase} phase The phase.
-     * @return {Phase}       A new phase with orders resolved.
-     */
-    generateNewSeason: function(phase) {
-        for (var m = 0; m < phase.moves.length; m++) {
-            // nothing to clean up
-            if (!phase.moves[m].units)
-                continue;
-
-            var move = phase.moves[m];
-
-            for (var u = 0; u < move.units.length; u++) {
-                if (move.units[u].result === 'fail') {
-
-                }
-                else if (move.units[u].result === 'success') {
-
-                }
-
-                // clear properties added in process()/processAll()
-                delete move.units[u].order;
-            }
-        }
-
-        return phase;
     }
 };

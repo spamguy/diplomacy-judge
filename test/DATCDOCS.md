@@ -5,24 +5,24 @@ Let's consider case 6.A.5:
 CASE 6.A.5 (Move to own sector with convoy)
 PRESTATE_SETPHASE Spring 1901, Movement
 PRESTATE
-	England: A lvp
-	England: A yor
-	England: F nth
-	Germany: F lon
-	Germany: A wal
+    England: A lvp
+    England: A yor
+    England: F nth
+    Germany: F lon
+    Germany: A wal
 ORDERS
-	England: F nth convoys A yor - yor
-	England: A yor-yor
-	England: A lvp supports A yor-yor
-	Germany: F lon-yor
-	Germnay: A wal SUPPORTS F lon-yor
+    England: F nth convoys A yor - yor
+    England: A yor-yor
+    England: A lvp supports A yor-yor
+    Germany: F lon-yor
+    Germnay: A wal SUPPORTS F lon-yor
 POSTSTATE
-	England: A lvp
-	England: F nth
-	Germany: F yor
-	Germany: A wal
+    England: A lvp
+    England: F nth
+    Germany: F yor
+    Germany: A wal
 POSTSTATE_DISLODGED
-	England: A yor
+    England: A yor
 END
 ```
 
@@ -34,7 +34,7 @@ Translated into JSON, The input phase looks like:
     season: 1,
     moves: [{
             r: 'NTH',
-            units: [{
+            unit: {
                 power: 'E',
                 type: 2,
                 order: {
@@ -42,20 +42,20 @@ Translated into JSON, The input phase looks like:
                     y1: 'YOR',
                     y2: 'YOR'
                 }
-            }]
+            }
         }, {
             r: 'YOR',
-            units: [{
+            unit: {
                 power: 'E',
                 type: 1,
                 order: {
                     action: 'move',
                     y1: 'YOR'
                 }
-            }]
+            }
         }, {
             r: 'LVP',
-            units: [{
+            unit: {
                 power: 'E',
                 type: 1,
                 order: {
@@ -66,17 +66,17 @@ Translated into JSON, The input phase looks like:
             }]
         }, {
             r: 'LON',
-            units: [{
+            unit: {
                 power: 'G',
                 type: 2,
                 order: {
                     action: 'move',
                     y1: 'YOR'
                 }
-            }]
+            }
         }, {
             r: 'WAL',
-            units: [{
+            unit: {
                 power: 'G',
                 type: 1,
                 order: {
@@ -84,7 +84,7 @@ Translated into JSON, The input phase looks like:
                     y1: 'LON',
                     y2: 'YOR'
                 }
-            }]
+            }
         }
     ]
 }
@@ -98,7 +98,7 @@ The result of `resolve()` should be the same, but with all the variant's regions
     season: 1,
     moves: [{
             r: 'NTH',
-            units: [{
+            unit: {
                 power: 'E',
                 type: 2,
                 order: {
@@ -111,7 +111,7 @@ The result of `resolve()` should be the same, but with all the variant's regions
             }]
         }, {
             r: 'YOR',
-            units: [{
+            unit: {
                 power: 'E',
                 type: 1,
                 dislodged: true,
@@ -121,10 +121,10 @@ The result of `resolve()` should be the same, but with all the variant's regions
                     result: 'fail',
                     details: 'ErrInvalidDestination'
                 }
-            }]
+            }
         }, {
             r: 'LVP',
-            units: [{
+            unit: {
                 power: 'E',
                 type: 1,
                 order: {
@@ -134,10 +134,10 @@ The result of `resolve()` should be the same, but with all the variant's regions
                     result: 'fail',
                     details: 'ErrIllegalSupportDestinationNation'
                 }
-            }]
+            }
         }, {
             r: 'LON',
-            units: [{
+            unit: {
                 power: 'G',
                 type: 2,
                 order: {
@@ -145,10 +145,10 @@ The result of `resolve()` should be the same, but with all the variant's regions
                     y1: 'YOR',
                     result: 'success'
                 }
-            }]
+            }
         }, {
             r: 'WAL',
-            units: [{
+            unit: {
                 power: 'G',
                 type: 1,
                 order: {
@@ -157,7 +157,7 @@ The result of `resolve()` should be the same, but with all the variant's regions
                     y2: 'YOR',
                     result: 'success'
                 }
-            }]
+            }
         }
     ]
 }
@@ -172,33 +172,32 @@ After being fed into a new season, the final result is this (minus regions with 
         season: 2,
         moves: [{
                 r: 'NTH',
-                units: [{
+                unit: {
                     power: 'E',
                     type: 2
-                }]
+                }
             }, {
                 r: 'YOR',
-                units: [{
-                        power: 'E',
-                        type: 1,
-                        dislodged: true
-                    }, {
-                        power: 'G',
-                        type: 1
-                    }
-                ]
-            }, {
-                r: 'LVP',
-                units: [{
-                    power: 'E',
-                    type: 1
-                }]
-            }, {
-                r: 'WAL',
-                units: [{
+                unit: {
                     power: 'G',
                     type: 1
-                }]
+                },
+                dislodged: {
+                    power: 'E',
+                    type: 1
+                }
+            }, {
+                r: 'LVP',
+                unit: {
+                    power: 'E',
+                    type: 1
+                }
+            }, {
+                r: 'WAL',
+                unit: {
+                    power: 'G',
+                    type: 1
+                }
             }
         ]
     }

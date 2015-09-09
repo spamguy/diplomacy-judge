@@ -4,7 +4,7 @@ var JudgeError = require('./errors'),
     OrderType = require('./ordertype'),
     Unit = require('./unit');
 
-function Province(data, orders) {
+function Province(data, order) {
     var splitName = data.r.split(/[\/\.]/);
     /**
      * The starting location of the unit.
@@ -13,13 +13,13 @@ function Province(data, orders) {
     this.name = splitName[0];
 
     if (data.sc)
-        this.supplyCentreOwner = data.sc.ownedBy;
+        this.supplyCentreOwner = data.sc;
 
-    if (orders) {
-        this.orders = [];
-        for (var o = 0; o < orders.units.length; o++)
-            this.orders.push(new Unit(orders.units[o]));
-    }
+    /**
+     * This unit's order.
+     * @type {Object}
+     */
+    this.order = order;
 
     /**
      * Whether unit's order is still being resolved.
@@ -48,10 +48,8 @@ Province.prototype.toJSON = function() {
     };
     if (this.supplyCentreOwner)
         jsonOrder.sc = { ownedBy: this.supplyCentreOwner };
-    if (this.orders) {
-        jsonOrder.units = [];
-        for (var u = 0; u < this.orders.length; u++)
-            jsonOrder.units.push(this.orders[u].toJSON());
+    if (this.order) {
+        jsonOrder.unit = this.order.toJSON();
     }
 
     return jsonOrder;
