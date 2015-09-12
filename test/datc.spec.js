@@ -173,7 +173,7 @@ stream.on('data', function(line) {
 
                     for (b = 0; b < beforePhaseData.moves.length; b++) {
                         if (beforePhaseData.moves[b].r === region) {
-                            beforePhaseData.moves[b].sc = { ownedBy: power };
+                            beforePhaseData.moves[b].sc = power;
                             break;
                         }
                     }
@@ -182,9 +182,7 @@ stream.on('data', function(line) {
                     if (b === beforePhaseData.moves.length) {
                         beforePhaseData.moves.push({
                             r: region,
-                            sc: {
-                                ownedBy: power
-                            }
+                            sc: power
                         });
                     }
 

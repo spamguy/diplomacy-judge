@@ -20,8 +20,8 @@ function Province(a, b) {
          */
         this.name = splitName[0];
 
-        if (a.sc)
-            this.supplyCentreOwner = a.sc;
+        // Variant sez there's an SC here.
+        this.supplyCentreOwner = b ? b.sc : null;
 
         /**
          * This unit's order.
@@ -45,15 +45,15 @@ Province.prototype.getFullName = function() {
     return name;
 };
 
-Province.prototype.toJSON = function() {
+Province.prototype.toObject = function() {
     var jsonOrder = {
         r: this.name
     };
-    if (this.supplyCentreOwner)
-        jsonOrder.sc = { ownedBy: this.supplyCentreOwner };
-    if (this.order) {
-        jsonOrder.unit = this.order.toJSON();
-    }
+
+    if ("sc" in this)
+        jsonOrder.sc = this.supplyCentreOwner;
+    if (this.order)
+        jsonOrder.unit = this.order.unit;
 
     return jsonOrder;
 };

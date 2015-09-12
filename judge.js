@@ -52,9 +52,16 @@ DiplomacyJudge.prototype = {
         /* BEGIN! */
 
         var state = new State(_variant, phaseData),
-            nextState = state.next();
+            nextState = state.next(),
+            nextStateObject = nextState.toObject();
 
-        return nextState.toJSON();
+        // Wipe all moves[].unit.order objects from newly minted seasons.
+        for (var m = 0; m < nextStateObject.moves.length; m++) {
+            if (nextStateObject.moves[m].unit)
+                delete nextStateObject.moves[m].unit.order;
+        }
+
+        return nextStateObject;
     },
 
     /**

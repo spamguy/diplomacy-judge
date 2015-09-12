@@ -68,8 +68,16 @@ State.prototype.next = function() {
     return nextState;
 };
 
-State.prototype.toJSON = function() {
-    return {
-
+State.prototype.toObject = function() {
+    var obj = {
+        year: this.phase.year,
+        season: this.phase.season,
+        moves: []
     };
+
+    // De-index.
+    for (var r in this.provinces)
+        obj.moves.push(this.provinces[r].toObject());
+
+    return obj;
 };
