@@ -4,31 +4,34 @@ var JudgeError = require('./errors'),
     OrderType = require('./ordertype'),
     Unit = require('./unit');
 
-function Province(data, order) {
-    var splitName = data.r.split(/[\/\.]/);
-    /**
-     * The starting location of the unit.
-     * @type {String}
-     */
-    this.name = splitName[0];
+function Province(a, b) {
+    // Clone-based constructor. b is undefined.
+    if (a instanceof Province) {
+        this.name = a.name;
+        this.supplyCentreOwner = a.supplyCentreOwner;
+        this.order = a.order;
+        this.subregion = a.subregion;
+    }
+    else {
+        var splitName = a.r.split(/[\/\.]/);
+        /**
+         * The starting location of the unit.
+         * @type {String}
+         */
+        this.name = splitName[0];
 
-    if (data.sc)
-        this.supplyCentreOwner = data.sc;
+        if (a.sc)
+            this.supplyCentreOwner = a.sc;
 
-    /**
-     * This unit's order.
-     * @type {Object}
-     */
-    this.order = order;
+        /**
+         * This unit's order.
+         * @type {Object}
+         */
+        this.order = b;
 
-    /**
-     * Whether unit's order is still being resolved.
-     * @type {Boolean}
-     */
-    this.isResolving = false;
-
-    if (splitName.length > 1)
-        this.subregion = splitName[1];
+        if (splitName.length > 1)
+            this.subregion = splitName[1];
+    }
 }
 
 /**

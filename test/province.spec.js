@@ -16,11 +16,6 @@ var sampleJSON = {
 };
 
 describe('Province', function() {
-    it('is unresolved and error-free by default', function() {
-        var output = new Province(sampleJSON);
-        expect(output.isResolving).to.equal(false);
-    });
-
     it('imports JSON values correctly', function() {
         var output = new Province(sampleJSON);
         expect(output.name).to.equal('STP');

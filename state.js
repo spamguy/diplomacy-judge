@@ -7,23 +7,36 @@ var _ = require('lodash');
 var Phase = require('./phase'),
     Province = require('./province');
 
-function State(variant, phaseData) {
-    /**
-     * Variant data pulled from JSON.
-     * @type {Object}
-     */
-    this.variant = variant;
+function State(a, b) {
+    var p;
 
-    this.phase = new Phase(phaseData);
+    // Clone-based constructor. b is undefined.
+    if (a instanceof State) {
+        this.variant = Object.create(a.variant);
+        this.phase = new Phase(a.phase);
+        this.provinces = {};
 
-    /**
-     * A string-to-province dictionary. It stores data on orders, dislodged status, SCs, and bounces.
-     * @type {Object}
-     */
-    this.provinces = {};
-    var provincesIndexedByName = _.indexBy(phaseData.moves, 'r');
-    for (var p = 0; p < this.variant.regions.length; p++)
-        this.provinces[this.variant.regions[p].r] = new Province(this.variant.regions[p], provincesIndexedByName[this.variant.regions[p].r]);
+        for (p in a.provinces)
+            this.provinces[p] = new Province(a.provinces[p]);
+    }
+    else {
+        /**
+         * Variant data pulled from JSON.
+         * @type {Object}
+         */
+        this.variant = a;
+
+        this.phase = new Phase(b);
+
+        /**
+         * A string-to-province dictionary. It stores data on orders, dislodged status, SCs, and bounces.
+         * @type {Object}
+         */
+        this.provinces = {};
+        var provincesIndexedByName = _.indexBy(b.moves, 'r');
+        for (p = 0; p < this.variant.regions.length; p++)
+            this.provinces[this.variant.regions[p].r] = new Province(this.variant.regions[p], provincesIndexedByName[this.variant.regions[p].r]);
+    }
 }
 
 /**
@@ -31,7 +44,8 @@ function State(variant, phaseData) {
  * @return {Error} An error encountered during processing, or null.
  */
 State.prototype.next = function() {
-    var nextState = _.cloneDeep(this);
+    // Clone object.
+    var nextState = new State(this);
 
     // Sanitise by junking invalid orders.
     for (var p in nextState.provinces) {
