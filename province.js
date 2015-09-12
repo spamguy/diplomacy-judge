@@ -27,7 +27,8 @@ function Province(a, b) {
          * This unit's order.
          * @type {Object}
          */
-        this.order = b;
+        if (b)
+            this.order = new Unit(b.unit);
 
         if (splitName.length > 1)
             this.subregion = splitName[1];
@@ -46,14 +47,14 @@ Province.prototype.getFullName = function() {
 };
 
 Province.prototype.toObject = function() {
-    var jsonOrder = {
+    var obj = {
         r: this.name
     };
 
     if ("sc" in this)
-        jsonOrder.sc = this.supplyCentreOwner;
+        obj.sc = this.supplyCentreOwner;
     if (this.order)
-        jsonOrder.unit = this.order.unit;
+        obj.unit = this.order.toObject();
 
-    return jsonOrder;
+    return obj;
 };

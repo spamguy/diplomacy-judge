@@ -17,12 +17,6 @@ function Unit(data) {
         this.subregion = data.sr;
 
     /**
-     * The type of unit occupying the region.
-     * @type {Number}
-     */
-    this.unitType = UnitType.toUnitType(data.type);
-
-    /**
      * The power owning this unit.
      * @type {Char}
      */
@@ -59,21 +53,32 @@ function Unit(data) {
         case 'hold':
             this.orderType = OrderType.HOLD;
             break;
+        case 'build':
+            this.orderType = OrderType.BUILD;
+            break;
+        case 'remove':
+            this.orderType = OrderType.REMOVE;
+            break;
         default:
             this.orderType = OrderType.HOLD;
             break;
     }
 
     /**
-     * The definitive outcome of this order.
-     * @type {Error}
+     * The type of unit occupying the region. When building/removing, this can be null.
+     * @type {Number}
      */
-    this.resolution = null;
+    if (this.orderType !== OrderType.BUILD && this.orderType !== OrderType.REMOVE) {
+        this.unitType = UnitType.toUnitType(data.type);
+    }
+    else {
+        // TODO: Process build/remove orders.
+    }
 }
 
-Unit.prototype.toJSON = function() {
+Unit.prototype.toObject = function() {
     // FIXME: obviously not everything will fail, and obviously not for the reason of 'because'
-    var jsonOrder = {
+    var obj = {
         power: this.power,
         type: this.unitType,
         order: {
@@ -84,15 +89,15 @@ Unit.prototype.toJSON = function() {
     };
 
     if (this.targetRegion)
-        jsonOrder.order.y1 = this.targetRegion;
+        obj.order.y1 = this.targetRegion;
     if (this.targetRegionOfTargetRegion)
-        jsonOrder.order.y2 = this.targetRegionOfTargetRegion;
+        obj.order.y2 = this.targetRegionOfTargetRegion;
     if (this.isDislodged)
-        jsonOrder.dislodged = true;
+        obj.dislodged = true;
     if (this.subregion)
-        jsonOrder.sr = this.subregion;
+        obj.sr = this.subregion;
 
-    return jsonOrder;
+    return obj;
 };
 
 Unit.prototype.adjudicate = function() {

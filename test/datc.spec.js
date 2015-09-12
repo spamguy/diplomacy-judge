@@ -247,7 +247,7 @@ stream.on('data', function(line) {
                             }
                         };
                         if (unitType)
-                            order.unit.order.unitType = unitType;
+                            order.unit.order.type = UnitType.toUnitType(unitType);
                         beforePhaseData.moves.push(order);
                     }
                     else {
