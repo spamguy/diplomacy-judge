@@ -7,8 +7,8 @@ var fs = require('fs'),
     expect = require('expect.js'),
     _ = require('lodash'),
     Judge = require('../judge'),
-    UnitType = require('../unittype'),
-    OrderType = require('../ordertype');
+    UnitType = require('../model/unittype'),
+    OrderType = require('../model/ordertype');
 
 var variant = null,
     judge = null;

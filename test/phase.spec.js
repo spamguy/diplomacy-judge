@@ -1,7 +1,7 @@
 var _ = require('lodash'),
     expect = require('expect.js');
 
-var Phase = require('../phase');
+var Phase = require('../model/phase');
 
 describe('Phase', function() {
     it('sets season data', function() {

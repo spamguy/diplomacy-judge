@@ -1,8 +1,8 @@
 var expect = require('expect.js');
 
-var Province = require('../province'),
-    UnitType = require('../unittype'),
-    OrderType = require('../ordertype');
+var Province = require('../model/province'),
+    UnitType = require('../model/unittype'),
+    OrderType = require('../model/ordertype');
 
 var sampleJSON = {
     r: 'STP/NC',

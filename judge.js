@@ -14,7 +14,7 @@ DEFINITIONS
 var _ = require('lodash');
 
 // Object definitions.
-var State = require('./State');
+var State = require('./model/State');
 
 // Private variables and things meant to last the lifespan of the judge.
 var _variant;
