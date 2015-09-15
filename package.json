@@ -32,6 +32,7 @@
     "mocha": "2.2.5"
   },
   "dependencies": {
+    "babel": "5.8.23",
     "lodash": "^3.9.3",
     "subclass-error": "^0.1.1",
     "winston": "^1.0.0"

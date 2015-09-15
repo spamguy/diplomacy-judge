@@ -40,7 +40,7 @@ Resolver.prototype.resolve = function(state, province) {
             else {
                 this.isResolving[province.name] = true;
                 var guessCount = _.keys(_guesses).length;
-                var result = province.orders[0].adjudicate();
+                var result = province.unit.order.adjudicate();
                 province.isResolving = false;
 
                 if (_guesses[province.name]) {

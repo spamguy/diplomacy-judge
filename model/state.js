@@ -52,7 +52,7 @@ State.prototype.next = function() {
         var province = this.provinces[p],
             err;
         if (province.unit && province.unit.order)
-            err = province.validate(this);
+            err = province.unit.order.validate(this);
     }
 
     // Set missing orders to HOLD.

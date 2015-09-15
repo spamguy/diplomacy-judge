@@ -5,7 +5,7 @@ module.exports = {
     SUPPORT: 3,
     CONVOY: 4,
     BUILD: 5,
-    REMOVE: 6,
+    DISBAND: 6,
 
     toOrderType: function(name) {
         switch (name.toString().toUpperCase()) {
@@ -34,7 +34,9 @@ module.exports = {
             case '6':
             case 'REMOVE':
             case 'REMOVES':
-                return 'remove';
+            case 'DISBAND':
+            case 'DISBANDS':
+                return 'disband';
             default:
                 throw new Error('No order type corresponds to ' + name);
         }

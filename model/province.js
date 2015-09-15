@@ -9,16 +9,15 @@ function Province(a, b) {
     if (a instanceof Province) {
         this.name = a.name;
         this.supplyCentreOwner = a.supplyCentreOwner;
-        this.order = a.order;
-        this.subregion = a.subregion;
+        if (a.unit)
+            this.unit = a.unit.clone();
     }
     else {
-        var splitName = a.r.split(/[\/\.]/);
         /**
          * The starting location of the unit.
          * @type {String}
          */
-        this.name = splitName[0];
+        this.name = a.r;
 
         // Variant sez there's an SC here.
         this.supplyCentreOwner = b ? b.sc : null;
@@ -27,22 +26,19 @@ function Province(a, b) {
          * This unit's order.
          * @type {Object}
          */
-        if (b)
-            this.order = new Unit(b.unit);
-
-        if (splitName.length > 1)
-            this.subregion = splitName[1];
+        if (b && b.unit)
+            this.unit = new Unit(b.unit);
     }
 }
 
 /**
  * Returns the full name of the province, including any applicable subregion.
  * @return {String} A three-letter province name. If a subregion is present, the name is followed by a dot and the subregion.
- */
+ */ 
 Province.prototype.getFullName = function() {
     var name = this.name;
-    if (this.subregion)
-        name += '.' + this.subregion;
+    if (this.unit && this.unit.subregion)
+        name += '.' + this.unit.subregion;
     return name;
 };
 
@@ -53,8 +49,8 @@ Province.prototype.toObject = function() {
 
     if ("sc" in this)
         obj.sc = this.supplyCentreOwner;
-    if (this.order)
-        obj.unit = this.order.toObject();
+    if (this.unit)
+        obj.unit = this.unit.toObject();
 
     return obj;
 };

@@ -3,11 +3,11 @@
 var Order = require('./order'),
     OrderType = require('../ordertype');
 
-module.exports = class HoldOrder extends Order {
+module.exports = class SupportOrder extends Order {
     constructor(data) {
         super(data);
 
-        this.type = OrderType.HOLD;
+        this.type = OrderType.SUPPORT;
     }
 
     validate() {
@@ -19,8 +19,8 @@ module.exports = class HoldOrder extends Order {
     }
 
     clone() {
-        var move = new HoldOrder();
-        move.type = OrderType.HOLD;
+        var move = new SupportOrder();
+        move.type = OrderType.SUPPORT;
 
         return move;
     }
