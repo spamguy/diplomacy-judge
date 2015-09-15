@@ -5,14 +5,14 @@ module.exports = {
     // ILLEGAL: Things that are understood but forbidden
 
     // Origin portion of order not present in variant definition.
-    InvalidSource: new SubclassError('InvalidSource'),
+    InvalidSourceError: new SubclassError('InvalidSourceError'),
 
     // Destination portion of order not present in variant definition.
-    InvalidDestination: new SubclassError('InvalidDestination'),
+    InvalidDestinationError: new SubclassError('InvalidDestinationError'),
 
     // Target portion of order not present in variant definition.
-    InvalidTarget: new SubclassError('InvalidTarget'),
+    InvalidTargetError: new SubclassError('InvalidTargetError'),
 
     // Phase is not valid according to variant definition.
-    InvalidPhase: new SubclassError('InvalidPhase')
+    InvalidPhaseError: new SubclassError('InvalidPhaseError')
 };

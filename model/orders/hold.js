@@ -10,7 +10,7 @@ module.exports = class HoldOrder extends Order {
         this.type = OrderType.HOLD;
     }
 
-    validate() {
+    validate(resolver) {
 
     }
 

@@ -10,7 +10,7 @@ module.exports = class SupportOrder extends Order {
         this.type = OrderType.SUPPORT;
     }
 
-    validate() {
+    validate(resolver) {
 
     }
 

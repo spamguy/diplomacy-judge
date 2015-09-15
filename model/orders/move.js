@@ -27,7 +27,7 @@ module.exports = class MoveOrder extends Order {
         if (resolver.phase === 1 || resolver.phase === 3)
             return validateMovementPhase(resolver);
         else
-            return Errors.InvalidSource
+            return new Errors.InvalidSourceError();
     }
 
     adjudicate(resolver) {

@@ -10,7 +10,7 @@ module.exports = class DisbandOrder extends Order {
         this.type = OrderType.DISBAND;
     }
 
-    validate() {
+    validate(resolver) {
 
     }
 

@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+
 var OrderType = require('./ordertype'),
     UnitType = require('./unittype'),
     HoldOrder = require('./orders/hold'),

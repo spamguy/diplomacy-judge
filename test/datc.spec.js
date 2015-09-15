@@ -1,3 +1,6 @@
+// set environment to 'test' to suppress logging
+//process.env.NODE_ENV = 'test';
+
 // This spec file parses the Diplomacy Adjudication Test Cases file and spits out one Jasmine unit test per item.
 var fs = require('fs'),
     path = require('path'),
@@ -6,15 +9,24 @@ var fs = require('fs'),
     stream = byline.createStream(stream),
     expect = require('expect.js'),
     _ = require('lodash'),
-    Judge = require('../judge'),
+    winston = require('winston'),
+    log;
+if (process.env.NODE_ENV === 'test') {
+    // suppress all logging during unit tests
+    log = new (winston.Logger)({
+        transports: [ ]
+    });
+}
+else {
+    log = winston;
+}
+
+var Judge = require('../judge'),
     UnitType = require('../model/unittype'),
     OrderType = require('../model/ordertype');
 
 var variant = null,
     judge = null;
-
-// set environment to 'test' to suppress logging
-//process.env.NODE_ENV = 'test';
 
 /*
  * During a unit test parse, a line can be considered in one of several states.
@@ -71,7 +83,7 @@ var itWrapper = function(fn, context, params) {
 };
 
 stream.on('error', function(err) {
-    console.log(err);
+    log.error(err);
 });
 
 stream.on('data', function(line) {
@@ -94,7 +106,7 @@ stream.on('data', function(line) {
             else
                 variantPath = path.resolve(path.join(__dirname, '../../../variants/' + match + '/' + match + '.json'));
 
-            console.log('Acquiring variant file at ' + variantPath);
+            log.info('Acquiring variant file at ' + variantPath);
 
             // HACK: 50% of the time this returns null/partial data
             while (!variant || !variant.regions)
@@ -324,11 +336,11 @@ stream.on('data', function(line) {
 });
 
 stream.on('end', function() {
-    // run all tests
+    // Run all tests.
     describe('DATC', function() {
         try {
         while (itQueue.length > 0)
             (itQueue.shift())();
-        } catch (ex) { console.log(ex); }
+        } catch (ex) { log.error(ex); }
     });
 });

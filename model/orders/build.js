@@ -10,7 +10,7 @@ module.exports = class BuildOrder extends Order {
         this.type = OrderType.BUILD;
     }
 
-    validate() {
+    validate(resolver) {
 
     }
 

@@ -5,7 +5,8 @@ var _ = require('lodash');
 
 // Model objects.
 var Phase = require('./phase'),
-    Province = require('./province');
+    Province = require('./province'),
+    HoldOrder = require('./orders/hold');
 
 function State(a, b) {
     var p;
@@ -36,6 +37,12 @@ function State(a, b) {
         var provincesIndexedByName = _.indexBy(b.moves, 'r');
         for (p = 0; p < this.variant.regions.length; p++)
             this.provinces[this.variant.regions[p].r] = new Province(this.variant.regions[p], provincesIndexedByName[this.variant.regions[p].r]);
+
+        /**
+         * A string-to-error dictionary. It stores data on order outcomes.
+         * @type {Object}
+         */
+        this.resolutions = {};
     }
 }
 
@@ -44,18 +51,33 @@ function State(a, b) {
  * @return {Error} An error encountered during processing, or null.
  */
 State.prototype.next = function() {
+    var province, p, err;
+
     // Clone object.
     var nextState = new State(this);
 
     // Sanitise by junking invalid orders.
-    for (var p in nextState.provinces) {
-        var province = this.provinces[p],
-            err;
+    for (p in nextState.provinces) {
+        province = nextState.provinces[p];
         if (province.unit && province.unit.order)
             err = province.unit.order.validate(this);
+        else
+            err = null;
+
+        // Wipe bad order and retain the error.
+        if (err) {
+            this.resolutions[p] = err;
+            delete province.unit.order;
+        }
     }
 
     // Set missing orders to HOLD.
+    for (p in nextState.provinces) {
+        province = nextState.provinces[p];
+        if (province.unit && (!province.unit || !province.unit.order || !province.unit.order.action)) {
+            province.unit.order = new HoldOrder();
+        }
+    }
 
     // Adjudicate.
 
