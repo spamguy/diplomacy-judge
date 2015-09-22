@@ -2,22 +2,20 @@ module.exports = function(grunt){
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
-    node_mocha: {
-        with_coverage: {
-            src: ['test/*.spec.js'],
+    mochaTest: {
+        test: {
             options: {
-                mochaOptions: {
-                    globals: ['expect'],
-                    reporter: 'spec'
-                },
-                runCoverage: true
-            }
+                globals: ['expect'],
+                reporter: 'spec',
+                require: 'babel/register'
+            },
+            src: ['test/*.spec.js']
         }
     }
   });
 
   // Load grunt mocha task
-  grunt.loadNpmTasks('grunt-node-mocha');
+  grunt.loadNpmTasks('grunt-mocha-test');
 
-  grunt.registerTask('default', ['node_mocha']);
+  grunt.registerTask('default', ['mochaTest']);
 };

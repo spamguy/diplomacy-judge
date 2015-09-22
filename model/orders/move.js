@@ -4,11 +4,7 @@ var Order = require('./order'),
     OrderType = require('../ordertype'),
     Errors = require('../errors');
 
-var validateMovementPhase = function(resolver) {
-
-};
-
-module.exports = class MoveOrder extends Order {
+export default class MoveOrder extends Order {
     constructor(data) {
         super(data);
         if (!data)
@@ -22,12 +18,22 @@ module.exports = class MoveOrder extends Order {
         this.targetProvince = data.y1;
     }
 
-    validate(resolver) {
-        // TODO: Make phase order configurable
-        if (resolver.phase === 1 || resolver.phase === 3)
-            return validateMovementPhase(resolver);
-        else
-            return new Errors.InvalidSourceError();
+    /**
+     * Validates an individual unit's move.
+     * @param  {String} r     The region possessing the unit.
+     * @param  {Unit}   unit  The unit making the move.
+     * @param  {State}  state The state.
+     * @return {Error}        The error this move causes, or null.
+     */
+     validate(province, unit, state) {
+        // Holding during a non-movement phase? Invalid.
+        if (state.phase.season !== 1 && state.phase.season !== 3)
+            return new Errors.InvalidPhaseError();
+
+        if (this.targetProvince === province)
+            return new Errors.IllegalMoveError();
+
+        return null;
     }
 
     adjudicate(resolver) {
@@ -47,4 +53,4 @@ module.exports = class MoveOrder extends Order {
             action: 'move'
         };
     }
-};
+}

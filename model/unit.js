@@ -11,7 +11,7 @@ var OrderType = require('./ordertype'),
     BuildOrder = require('./orders/build'),
     DisbandOrder = require('./orders/disband');
 
-export default class Unit {
+module.exports = class Unit {
     constructor(data) {
         if (!data)
             return null;
@@ -30,6 +30,7 @@ export default class Unit {
 
         switch (data.order.action) {
             case 'move':
+            debugger;
                 this.order = new MoveOrder(data.order);
                 this.unitType = UnitType.toUnitType(data.type);
                 break;

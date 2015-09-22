@@ -14,5 +14,8 @@ module.exports = {
     InvalidTargetError: new SubclassError('InvalidTargetError'),
 
     // Phase is not valid according to variant definition.
-    InvalidPhaseError: new SubclassError('InvalidPhaseError')
+    InvalidPhaseError: new SubclassError('InvalidPhaseError'),
+
+    // Move not allowed according to variant graph.
+    IllegalMoveError: new SubclassError('IllegalMoveError')
 };

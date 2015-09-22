@@ -6,14 +6,15 @@ var _ = require('lodash');
 // Model objects.
 var Phase = require('./phase'),
     Province = require('./province'),
-    HoldOrder = require('./orders/hold');
+    HoldOrder = require('./orders/hold'),
+    Variant = require('./variant');
 
 function State(a, b) {
     var p;
 
     // Clone-based constructor. b is undefined.
     if (a instanceof State) {
-        this.variant = Object.create(a.variant);
+        this.variant = new Variant(a.variant);
         this.phase = new Phase(a.phase);
         this.provinces = {};
 
@@ -25,7 +26,7 @@ function State(a, b) {
          * Variant data pulled from JSON.
          * @type {Object}
          */
-        this.variant = a;
+        this.variant = new Variant(a);
 
         this.phase = new Phase(b);
 
@@ -60,7 +61,7 @@ State.prototype.next = function() {
     for (p in nextState.provinces) {
         province = nextState.provinces[p];
         if (province.unit && province.unit.order)
-            err = province.unit.order.validate(this);
+            err = province.unit.order.validate(p, province.unit, this);
         else
             err = null;
 

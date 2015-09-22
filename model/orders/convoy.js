@@ -10,7 +10,7 @@ module.exports = class ConvoyOrder extends Order {
         this.type = OrderType.CONVOY;
     }
 
-    validate(resolver) {
+    validate(state) {
 
     }
 
